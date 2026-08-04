@@ -20,7 +20,13 @@ export function MobileNav() {
           <NavigationLink key={item.href} item={item} variant="mobile" />
         ))}
 
-        <button type="button" className="mobile-add-button" aria-label="Thêm giao dịch">
+        <button
+          type="button"
+          className="mobile-add-button opacity-60"
+          aria-label="Thêm giao dịch — sẽ mở ở V1.3.0"
+          title="Thêm giao dịch sẽ được phát triển ở V1.3.0"
+          disabled
+        >
           <Icon name="add" className="size-7" />
         </button>
 

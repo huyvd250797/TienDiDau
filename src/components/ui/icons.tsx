@@ -1,8 +1,24 @@
 import type { ReactNode, SVGProps } from "react";
+
 import type { NavigationIconName } from "@/types/navigation";
 
+type UtilityIconName =
+  | "bell"
+  | "sun"
+  | "moon"
+  | "chevron"
+  | "trend"
+  | "alert"
+  | "refresh"
+  | "check"
+  | "shield"
+  | "user"
+  | "logout"
+  | "categories"
+  | "workspace";
+
 interface IconProps extends SVGProps<SVGSVGElement> {
-  name: NavigationIconName | "bell" | "sun" | "moon" | "chevron" | "trend";
+  name: NavigationIconName | UtilityIconName;
 }
 
 const paths: Record<IconProps["name"], ReactNode> = {
@@ -62,6 +78,57 @@ const paths: Record<IconProps["name"], ReactNode> = {
     <>
       <path d="m3 17 6-6 4 4 8-8" />
       <path d="M15 7h6v6" />
+    </>
+  ),
+  alert: (
+    <>
+      <path d="M10.3 3.6 2.6 17a2 2 0 0 0 1.74 3h15.32a2 2 0 0 0 1.74-3L13.7 3.6a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 9v4" />
+      <path d="M12 17h.01" />
+    </>
+  ),
+  refresh: (
+    <>
+      <path d="M20 6v5h-5" />
+      <path d="M4 18v-5h5" />
+      <path d="M18.5 9A7 7 0 0 0 6 6.5L4 11" />
+      <path d="M5.5 15A7 7 0 0 0 18 17.5l2-4.5" />
+    </>
+  ),
+  check: <path d="m5 12 4 4L19 6" />,
+  shield: (
+    <>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+      <path d="m9 12 2 2 4-4" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </>
+  ),
+  logout: (
+    <>
+      <path d="M10 17l5-5-5-5" />
+      <path d="M15 12H3" />
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+    </>
+  ),
+  categories: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="2" />
+      <rect x="14" y="3" width="7" height="7" rx="2" />
+      <rect x="3" y="14" width="7" height="7" rx="2" />
+      <path d="M17.5 14v7M14 17.5h7" />
+    </>
+  ),
+  workspace: (
+    <>
+      <path d="M3 21h18" />
+      <path d="M6 21V7l6-4 6 4v14" />
+      <path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01" />
+      <path d="M10 21v-4h4v4" />
     </>
   )
 };

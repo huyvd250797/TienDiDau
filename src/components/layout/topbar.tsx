@@ -1,9 +1,11 @@
 "use client";
 
-import { Brand } from "@/components/layout/brand";
-import { Icon } from "@/components/ui/icons";
-import { useTheme } from "@/components/providers/theme-provider";
 import { usePathname } from "next/navigation";
+
+import { UserMenu } from "@/components/auth/user-menu";
+import { Brand } from "@/components/layout/brand";
+import { useTheme } from "@/components/providers/theme-provider";
+import { Icon } from "@/components/ui/icons";
 
 export function Topbar() {
   const { resolvedTheme, toggleTheme } = useTheme();
@@ -31,7 +33,7 @@ export function Topbar() {
 
         <div className="hidden lg:block">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            TienDiDau · V1.0.0
+            TienDiDau · V1.1.0
           </p>
           <h1 className="mt-1 text-xl font-bold tracking-tight text-foreground">{title}</h1>
         </div>
@@ -45,21 +47,10 @@ export function Topbar() {
           >
             <Icon name={resolvedTheme === "dark" ? "sun" : "moon"} className="size-5" />
           </button>
-          <button type="button" className="icon-button" aria-label="Thông báo">
+          <button type="button" className="icon-button" aria-label="Thông báo" disabled title="Thông báo sẽ có ở phase sau">
             <Icon name="bell" className="size-5" />
           </button>
-          <button
-            type="button"
-            className="ml-1 flex items-center gap-3 rounded-2xl border border-border bg-card px-2 py-1.5 text-left transition hover:border-primary/40"
-          >
-            <span className="grid size-9 place-items-center rounded-xl bg-linear-to-br from-primary to-indigo-400 text-sm font-bold text-white">
-              TĐ
-            </span>
-            <span className="hidden pr-2 sm:block">
-              <span className="block text-sm font-semibold text-foreground">Người dùng mẫu</span>
-              <span className="block text-xs text-muted-foreground">Phase 1</span>
-            </span>
-          </button>
+          <UserMenu />
         </div>
       </div>
     </header>

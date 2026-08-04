@@ -1,50 +1,69 @@
-# TienDiDau — Phase 1 Checklist
+# TienDiDau — MVP Progress Checklist
 
-## Foundation
+## V1.0.0 Foundation
 
-- [x] Next.js App Router
-- [x] React + TypeScript Strict
-- [x] Tailwind CSS 4
-- [x] ESLint Flat Config
-- [x] Prettier + Tailwind class sorting
-- [x] Alias `@/*`
+- [x] Next.js App Router.
+- [x] React + TypeScript Strict.
+- [x] Tailwind CSS 4.
+- [x] ESLint, Prettier và alias `@/*`.
+- [x] Dark / Light / System theme.
+- [x] Responsive Desktop, Tablet, Mobile.
+- [x] Firebase Client/Admin foundation.
+- [x] Netlify-ready project structure.
 
-## Design System
+## V1.1.0 AuthBootstrap
 
-- [x] Dark Mode mặc định
-- [x] Light Mode
-- [x] System Mode
-- [x] Semantic color tokens
-- [x] Responsive spacing/radius/layout tokens
-- [x] Reduced-motion support
+- [x] Google Sign-In.
+- [x] Ghi nhớ và tự khôi phục phiên.
+- [x] Protected routes.
+- [x] User profile.
+- [x] Personal workspace.
+- [x] Owner member.
+- [x] Settings mặc định.
+- [x] 7 danh mục Thu mặc định.
+- [x] 13 danh mục Chi mặc định.
+- [x] Firebase ID Token verification.
+- [x] Firestore Security Rules theo workspace.
+- [x] User menu và đăng xuất.
 
-## Layout
+## V1.2.0 Wallets & Categories
 
-- [x] Desktop Sidebar
-- [x] Tablet responsive content
-- [x] Mobile Bottom Navigation
-- [x] Header avatar/theme/notification
-- [x] Safe-area support cho iPhone
-- [x] Dashboard UI scaffold
+- [ ] CRUD Ví.
+- [ ] Onboarding tạo ví đầu tiên.
+- [ ] CRUD Danh mục.
+- [ ] Trạng thái Active/Hidden.
+- [ ] Quy tắc không xóa khi đã phát sinh giao dịch.
 
-## Firebase
+## V1.3.0 Transactions Core
 
-- [x] Firebase client config
-- [x] Auth / Firestore / Storage services
-- [x] Firestore offline multi-tab cache
-- [x] Firebase Admin lazy initialization
-- [x] Emulator connection
-- [x] Firestore Rules starter
-- [x] Storage Rules starter
-- [x] `.env.example`
-- [x] Health API
+- [ ] Thu nhập.
+- [ ] Chi tiêu.
+- [ ] Chuyển tiền.
+- [ ] Sửa/xóa và hoàn tác số dư.
+- [ ] Upload hóa đơn.
 
-## Chưa thuộc Phase 1
+## V1.4.0 Dashboard & History
 
-- [ ] Google Sign-In và tạo hồ sơ
-- [ ] CRUD ví
-- [ ] CRUD danh mục
-- [ ] Thu / Chi / Chuyển tiền
-- [ ] Dashboard dữ liệu thật
-- [ ] Báo cáo
-- [ ] Backup / Restore
+- [ ] Dashboard dữ liệu thật.
+- [ ] Danh sách giao dịch.
+- [ ] Bộ lọc và tìm kiếm.
+- [ ] Phân trang.
+
+## V1.5.0 Reports
+
+- [ ] Pie/Donut Chart.
+- [ ] Bar Chart Thu/Chi.
+- [ ] Top danh mục và giao dịch.
+
+## V1.6.0 Settings & Backup
+
+- [ ] Định dạng tiền tệ/ngày tháng.
+- [ ] Backup JSON.
+- [ ] Restore Merge/Overwrite.
+
+## V1.7.0 Production MVP
+
+- [ ] PWA.
+- [ ] Offline shell.
+- [ ] Performance và accessibility.
+- [ ] Kiểm thử production đầy đủ.

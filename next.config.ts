@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
   poweredByHeader: false,
+  serverExternalPackages: ["firebase-admin"],
   experimental: {
     optimizePackageImports: ["firebase"]
   }

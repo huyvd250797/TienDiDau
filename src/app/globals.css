@@ -278,3 +278,43 @@ a:focus-visible {
     animation-iteration-count: 1 !important;
   }
 }
+
+.primary-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 85%, white 5%);
+  border-radius: var(--radius-control);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 92%, white), var(--primary));
+  padding: 0.7rem 1rem;
+  color: var(--primary-foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--primary) 28%, transparent);
+  transition: 160ms ease;
+}
+
+.primary-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--primary) 34%, transparent);
+}
+
+.primary-button:disabled,
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

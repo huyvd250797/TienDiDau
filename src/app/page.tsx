@@ -1,10 +1,10 @@
-import { FoundationDashboard } from "@/components/dashboard/foundation-dashboard";
+import { AuthBootstrapDashboard } from "@/components/dashboard/auth-bootstrap-dashboard";
 import { AppShell } from "@/components/layout/app-shell";
 
 export default function HomePage() {
   return (
     <AppShell>
-      <FoundationDashboard />
+      <AuthBootstrapDashboard />
     </AppShell>
   );
 }

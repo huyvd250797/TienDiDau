@@ -5,28 +5,52 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
+    function isSelf(userId) {
       return signedIn() && request.auth.uid == userId;
     }
 
-    function isWorkspaceMember(workspaceId) {
+    function isActiveWorkspaceMember(workspaceId) {
       return signedIn()
-        && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid));
+        && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.status == 'active'
+        && get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.isDeleted == false;
     }
 
     match /users/{userId} {
-      allow read, create, update: if isOwner(userId);
-      allow delete: if false;
+      allow read: if isSelf(userId) && resource.data.isDeleted == false;
+      allow create, update, delete: if false;
     }
 
     match /workspaces/{workspaceId} {
-      allow read: if isWorkspaceMember(workspaceId);
-      allow create: if signedIn();
-      allow update: if isWorkspaceMember(workspaceId);
-      allow delete: if false;
+      allow read: if isActiveWorkspaceMember(workspaceId) && resource.data.isDeleted == false;
+      allow create, update, delete: if false;
+
+      match /members/{memberId} {
+        allow read: if isActiveWorkspaceMember(workspaceId);
+        allow create, update, delete: if false;
+      }
+
+      match /settings/{settingId} {
+        allow read: if isActiveWorkspaceMember(workspaceId) && resource.data.isDeleted == false;
+        allow create, update, delete: if false;
+      }
+
+      match /categories/{categoryId} {
+        allow read: if isActiveWorkspaceMember(workspaceId) && resource.data.isDeleted == false;
+        allow create, update, delete: if false;
+      }
+
+      // Sẽ mở có kiểm soát trong V1.2.0 và V1.3.0.
+      match /wallets/{walletId} {
+        allow read, create, update, delete: if false;
+      }
+
+      match /transactions/{transactionId} {
+        allow read, create, update, delete: if false;
+      }
 
       match /{document=**} {
-        allow read, write: if isWorkspaceMember(workspaceId);
+        allow read, write: if false;
       }
     }
 
