@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.2-yarn-netlify-fix — 2026-08-05
+
+- Chuyển Netlify từ npm sang Yarn Classic 1.22.22 để tránh lỗi Arborist với dependency Git `closure-net`.
+- Ép Netlify dùng Yarn qua `packageManager` và `NETLIFY_USE_YARN=true`.
+- Ghim `@firebase/webchannel-wrapper` 1.0.6 bằng Yarn resolutions.
+- Đồng bộ GitHub Actions, tài liệu deploy, Health API và nhãn giao diện lên V1.1.2.
+
+## 1.1.1-netlify-deploy-fix — 2026-08-05
+
+### Fixed
+
+- Ghim Node.js 22.16.0 cho Netlify, local và GitHub Actions.
+- Ghim npm 10.9.7 để tránh lỗi Arborist `Cannot read properties of null (reading matches)` khi npm 11 xử lý dependency Git của Firebase.
+- Chuẩn hóa build command thành `next build`.
+- Thêm `.npmrc` để tắt audit/fund trong lúc cài đặt và lưu dependency chính xác.
+- Cập nhật Health API và nhãn phiên bản lên V1.1.1.
+
 ## 1.1.0-auth-bootstrap — 2026-08-04
 
 ### Added
