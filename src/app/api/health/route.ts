@@ -11,7 +11,7 @@ export function GET() {
     {
       status: "ok",
       app: "TienDiDau",
-      version: "1.1.0",
+      version: "1.1.2",
       phase: "auth-bootstrap",
       firebaseClientConfigured: isFirebaseClientConfigured,
       firebaseAdminConfigured: isFirebaseAdminConfigured,

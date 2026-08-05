@@ -33,7 +33,7 @@ export function Topbar() {
 
         <div className="hidden lg:block">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            TienDiDau · V1.1.0
+            TienDiDau · V1.1.2
           </p>
           <h1 className="mt-1 text-xl font-bold tracking-tight text-foreground">{title}</h1>
         </div>
