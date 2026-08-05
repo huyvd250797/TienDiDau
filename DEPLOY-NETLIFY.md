@@ -1,17 +1,17 @@
-# Hướng dẫn deploy V1.1.0 bằng GitHub → Netlify
+# Hướng dẫn deploy V1.1.1 bằng GitHub → Netlify
 
 Tài liệu này dành cho quy trình làm hoàn toàn trên iPhone. Không cần chạy localhost.
 
 # A. Cập nhật source lên GitHub
 
-1. Giải nén `TienDiDau-V1.1.0-AuthBootstrap.zip`.
+1. Giải nén `TienDiDau-V1.1.1-NetlifyDeployFix.zip`.
 2. Trong Working Copy, mở repository `TienDiDau`.
-3. Xóa hoặc ghi đè source V1.0.0 bằng nội dung V1.1.0.
+3. Xóa hoặc ghi đè source V1.0.0 bằng nội dung V1.1.1.
 4. Bảo đảm `package.json` nằm ngay thư mục gốc repository.
 5. Commit với nội dung:
 
 ```text
-Release V1.1.0 AuthBootstrap
+Release V1.1.1 NetlifyDeployFix
 ```
 
 6. Push lên nhánh `main`.
@@ -189,7 +189,7 @@ Cần thấy:
 ```json
 {
   "status": "ok",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "firebaseClientConfigured": true,
   "firebaseAdminConfigured": true
 }
@@ -233,6 +233,24 @@ workspaces/personal-{uid}/categories/{20 documents}
 4. App trở về Login.
 
 # L. Xử lý lỗi thường gặp
+
+## Lỗi `Cannot read properties of null (reading matches)` khi cài dependencies
+
+Bản V1.1.1 đã sửa lỗi này bằng cách ghim:
+
+```text
+Node.js 22.16.0
+npm 10.9.7
+```
+
+Các giá trị nằm trong `.nvmrc`, `package.json` và `netlify.toml`. Sau khi push bản mới, bắt buộc chọn:
+
+```text
+Deploys → Trigger deploy → Clear cache and deploy site
+```
+
+Trong deploy log phải xuất hiện Node.js `v22.16.0` và npm `10.9.7`, không còn Node.js 24/npm 11.
+
 
 ## `auth/unauthorized-domain`
 

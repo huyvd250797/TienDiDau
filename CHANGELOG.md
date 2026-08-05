@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.1-netlify-deploy-fix — 2026-08-05
+
+### Fixed
+
+- Ghim Node.js 22.16.0 cho Netlify, local và GitHub Actions.
+- Ghim npm 10.9.7 để tránh lỗi Arborist `Cannot read properties of null (reading matches)` khi npm 11 xử lý dependency Git của Firebase.
+- Chuẩn hóa build command thành `next build`.
+- Thêm `.npmrc` để tắt audit/fund trong lúc cài đặt và lưu dependency chính xác.
+- Cập nhật Health API và nhãn phiên bản lên V1.1.1.
+
 ## 1.1.0-auth-bootstrap — 2026-08-04
 
 ### Added
