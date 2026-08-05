@@ -1,6 +1,6 @@
-# Build Status — V1.1.0 AuthBootstrap
+# Build Status — V1.1.1 NetlifyDeployFix
 
-Ngày đóng gói: **2026-08-04**
+Ngày đóng gói: **2026-08-05**
 
 ## Đã kiểm tra trong môi trường đóng gói
 
@@ -16,13 +16,13 @@ Ngày đóng gói: **2026-08-04**
 - Không chứa Service Account JSON.
 - Không chứa Firebase private key thật.
 - Không chứa `node_modules` hoặc output `.next`.
-- Node.js được khóa ở nhánh 24 LTS trên Netlify và GitHub Actions.
+- Node.js được khóa ở 22.16.0 và npm ở 10.9.7 trên Netlify, local và GitHub Actions.
 - Phiên bản dependency được ghim chính xác trong `package.json`.
 - ZIP được kiểm tra sau khi đóng gói.
 
 ## Giới hạn kiểm tra
 
-Môi trường đóng gói không kết nối được npm registry, vì vậy chưa thể:
+Môi trường đóng gói chỉ truy cập registry nội bộ và registry này chưa có đầy đủ các package phiên bản mới, vì vậy chưa thể:
 
 - tải `node_modules`;
 - tạo lockfile chính xác từ registry;
@@ -42,3 +42,11 @@ npm test
 npm run format:check
 npm run build
 ```
+
+## V1.1.1 deployment runtime
+
+- Node.js: 22.16.0
+- npm: 10.9.7
+- Netlify build command: `npm run build`
+- Next.js build command: `next build`
+- Cần Clear cache and deploy sau khi push.

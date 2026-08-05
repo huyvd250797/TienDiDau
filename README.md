@@ -1,6 +1,6 @@
-# Tiền Đi Đâu — V1.1.0 AuthBootstrap
+# Tiền Đi Đâu — V1.1.1 AuthBootstrap
 
-Phiên bản V1.1.0 triển khai nền tảng tài khoản cho ứng dụng quản lý thu chi **Tiền Đi Đâu**.
+Phiên bản V1.1.1 triển khai nền tảng tài khoản cho ứng dụng quản lý thu chi **Tiền Đi Đâu**.
 
 ## Chức năng đã hoàn thành
 
@@ -23,7 +23,7 @@ Phiên bản V1.1.0 triển khai nền tảng tài khoản cho ứng dụng qu�
 
 ## Công nghệ
 
-- Node.js 24 LTS
+- Node.js 22.16.0 LTS
 - Next.js App Router
 - React + TypeScript Strict Mode
 - Tailwind CSS 4
@@ -33,7 +33,8 @@ Phiên bản V1.1.0 triển khai nền tảng tài khoản cho ứng dụng qu�
 - Zod
 - Vitest
 - Netlify + GitHub continuous deployment
-- Dependency versions được ghim chính xác trong `package.json`
+- Node.js và npm được ghim lần lượt ở 22.16.0 và 10.9.7 để build ổn định trên Netlify.
+- Dependency versions được ghim chính xác trong `package.json`.
 
 ## Luồng đăng nhập
 
@@ -122,7 +123,7 @@ Xem hướng dẫn từng bước tại:
 DEPLOY-NETLIFY.md
 ```
 
-Sau khi cấu hình, mỗi lần push lên nhánh `main`, Netlify sẽ tự động build và deploy.
+Sau khi cấu hình, mỗi lần push lên nhánh `main`, Netlify sẽ tự động build và deploy. Source đã ghim Node.js 22.16.0 và npm 10.9.7 trong `netlify.toml` để tránh lỗi cài dependency của npm 11.
 
 ## Kiểm tra sau deploy
 
@@ -137,7 +138,7 @@ Kết quả cần có:
 ```json
 {
   "status": "ok",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "phase": "auth-bootstrap",
   "firebaseClientConfigured": true,
   "firebaseAdminConfigured": true

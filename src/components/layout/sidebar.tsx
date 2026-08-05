@@ -23,7 +23,7 @@ export function Sidebar() {
         </nav>
 
         <div className="rounded-3xl border border-primary/20 bg-primary/10 p-4">
-          <p className="text-sm font-semibold text-foreground">V1.1.0 · AuthBootstrap</p>
+          <p className="text-sm font-semibold text-foreground">V1.1.1 · AuthBootstrap</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
             Google Login, hồ sơ, workspace, phân quyền và danh mục mặc định đã sẵn sàng.
           </p>
