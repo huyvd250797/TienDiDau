@@ -1,44 +1,24 @@
-# Build Status — V1.1.0 AuthBootstrap
+# Build Status — V1.1.3 TypeScriptPinFix
 
-Ngày đóng gói: **2026-08-04**
+## Đã kiểm tra trong gói source
 
-## Đã kiểm tra trong môi trường đóng gói
+- TypeScript đã được ghim về bản stable `5.9.3` thay cho bản không tồn tại `6.0.0`.
+- `package.json` hợp lệ và package manager là Yarn 1.22.22.
+- `netlify.toml` dùng Node.js 22.16.0 và ép Netlify cài dependency bằng Yarn.
+- Không còn `package-lock.json`, `npm-shrinkwrap.json`, `pnpm-lock.yaml` hoặc `.npmrc`.
+- GitHub Actions đã đồng bộ sang Yarn.
+- Version UI và Health API đã lên 1.1.3.
 
-- Cấu trúc source và tất cả local import `@/*` hợp lệ.
-- Tất cả file TypeScript/TSX được parse bằng TypeScript compiler.
-- Kiểm tra kiểu strict nội bộ với external module stubs đã đạt.
-- Không phát hiện lỗi cú pháp TypeScript/TSX.
-- `package.json` và các file JSON đọc hợp lệ.
-- Firestore Rules và Storage Rules có cấu trúc đầy đủ.
-- Mock Firestore Transaction xác nhận: lần đầu tạo 24 documents; đăng nhập lại không tạo trùng; role sai bị từ chối và không ghi dữ liệu dở dang.
-- Bộ 20 danh mục có đúng 7 Thu, 13 Chi; ID và systemKey không trùng.
-- Không chứa `.env.local`.
-- Không chứa Service Account JSON.
-- Không chứa Firebase private key thật.
-- Không chứa `node_modules` hoặc output `.next`.
-- Node.js được khóa ở nhánh 24 LTS trên Netlify và GitHub Actions.
-- Phiên bản dependency được ghim chính xác trong `package.json`.
-- ZIP được kiểm tra sau khi đóng gói.
-
-## Giới hạn kiểm tra
-
-Môi trường đóng gói không kết nối được npm registry, vì vậy chưa thể:
-
-- tải `node_modules`;
-- tạo lockfile chính xác từ registry;
-- chạy `npm run typecheck` với type definitions thật;
-- chạy ESLint/Prettier/Vitest;
-- chạy production build của Next.js.
-
-GitHub Actions đi kèm source sẽ chạy typecheck, lint, test và build sau khi Boss push lên GitHub. Netlify cũng sẽ chạy production build.
-
-## Lệnh kiểm tra chuẩn
+## Lệnh kiểm tra local
 
 ```bash
-npm install
-npm run typecheck
-npm run lint
-npm test
-npm run format:check
-npm run build
+corepack enable
+corepack prepare yarn@1.22.22 --activate
+yarn install
+yarn typecheck
+yarn lint
+yarn test
+yarn build
 ```
+
+Môi trường đóng gói hiện tại không truy cập được npm registry công khai, vì vậy chưa thể chạy `yarn install` và production build đầy đủ tại đây. Netlify/GitHub Actions sẽ thực hiện kiểm tra dependency và build thực tế sau khi push.
