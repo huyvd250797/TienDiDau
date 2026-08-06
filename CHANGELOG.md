@@ -1,28 +1,14 @@
 # Changelog
 
-## 1.1.3-typescript-pin-fix — 2026-08-05
-
-- Sửa dependency không tồn tại `typescript@6.0.0`.
-- Ghim TypeScript stable `5.9.3`, tương thích với Next.js 16.
-- Giữ Yarn Classic để tránh lỗi npm khi xử lý dependency git `closure-net`.
-- Đồng bộ nhãn giao diện và Health API lên V1.1.3.
-
-## 1.1.2-yarn-netlify-fix — 2026-08-05
-
-- Chuyển Netlify từ npm sang Yarn Classic 1.22.22 để tránh lỗi Arborist với dependency Git `closure-net`.
-- Ép Netlify dùng Yarn qua `packageManager` và `NETLIFY_USE_YARN=true`.
-- Ghim `@firebase/webchannel-wrapper` 1.0.6 bằng Yarn resolutions.
-- Đồng bộ GitHub Actions, tài liệu deploy, Health API và nhãn giao diện lên V1.1.2.
-
-## 1.1.1-netlify-deploy-fix — 2026-08-05
+## 1.1.1-netlify-esm-fix — 2026-08-06
 
 ### Fixed
 
-- Ghim Node.js 22.16.0 cho Netlify, local và GitHub Actions.
-- Ghim npm 10.9.7 để tránh lỗi Arborist `Cannot read properties of null (reading matches)` khi npm 11 xử lý dependency Git của Firebase.
-- Chuẩn hóa build command thành `next build`.
-- Thêm `.npmrc` để tắt audit/fund trong lúc cài đặt và lưu dependency chính xác.
-- Cập nhật Health API và nhãn phiên bản lên V1.1.1.
+- Sửa lỗi Netlify Function `ERR_REQUIRE_ESM` khi `firebase-admin@14` tải `jwks-rsa@4` cùng `jose@6`.
+- Thêm npm override `jwks-rsa > jose = 4.15.9` theo workaround của issue upstream Firebase Admin.
+- Chuyển production build sang Webpack để tăng độ ổn định trên Netlify serverless.
+- Tách `admin-config.ts` để Health API không tải sớm toàn bộ Firebase Admin SDK.
+- Nâng phiên bản ứng dụng lên `1.1.1`.
 
 ## 1.1.0-auth-bootstrap — 2026-08-04
 
