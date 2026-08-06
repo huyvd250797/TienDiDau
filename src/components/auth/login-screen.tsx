@@ -77,7 +77,7 @@ export function LoginScreen() {
             </div>
             <div className="mt-12 lg:mt-0">
               <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                V1.1.3 · AuthBootstrap
+                V1.1.1 · AuthBootstrap
               </span>
               <h2 className="mt-5 text-3xl font-bold tracking-tight">Chào mừng trở lại</h2>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">

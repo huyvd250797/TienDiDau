@@ -1,6 +1,6 @@
-# Tiền Đi Đâu — V1.1.3 AuthBootstrap
+# Tiền Đi Đâu — V1.1.1 AuthBootstrap Hotfix
 
-Phiên bản V1.1.3 triển khai nền tảng tài khoản cho ứng dụng quản lý thu chi **Tiền Đi Đâu**.
+Phiên bản V1.1.0 triển khai nền tảng tài khoản cho ứng dụng quản lý thu chi **Tiền Đi Đâu**.
 
 ## Chức năng đã hoàn thành
 
@@ -23,7 +23,7 @@ Phiên bản V1.1.3 triển khai nền tảng tài khoản cho ứng dụng qu�
 
 ## Công nghệ
 
-- Node.js 22.16.0 LTS
+- Node.js 24 LTS
 - Next.js App Router
 - React + TypeScript Strict Mode
 - Tailwind CSS 4
@@ -33,8 +33,7 @@ Phiên bản V1.1.3 triển khai nền tảng tài khoản cho ứng dụng qu�
 - Zod
 - Vitest
 - Netlify + GitHub continuous deployment
-- Node.js được ghim ở 22.16.0; Netlify cài dependency bằng Yarn Classic 1.22.22 để tránh lỗi npm Arborist với dependency Git của Firebase.
-- Dependency versions được ghim chính xác trong `package.json`.
+- Dependency versions được ghim chính xác trong `package.json`
 
 ## Luồng đăng nhập
 
@@ -123,7 +122,7 @@ Xem hướng dẫn từng bước tại:
 DEPLOY-NETLIFY.md
 ```
 
-Sau khi cấu hình, mỗi lần push lên nhánh `main`, Netlify sẽ tự động build và deploy. Source đã ghim Node.js 22.16.0 và ép Netlify dùng Yarn Classic 1.22.22 thay cho npm trong bước cài dependency.
+Sau khi cấu hình, mỗi lần push lên nhánh `main`, Netlify sẽ tự động build và deploy.
 
 ## Kiểm tra sau deploy
 
@@ -138,7 +137,7 @@ Kết quả cần có:
 ```json
 {
   "status": "ok",
-  "version": "1.1.3",
+  "version": "1.1.1",
   "phase": "auth-bootstrap",
   "firebaseClientConfigured": true,
   "firebaseAdminConfigured": true
@@ -150,11 +149,9 @@ Sau đó mở trang chính và đăng nhập Google.
 ## Chạy local, chỉ khi cần
 
 ```bash
-corepack enable
-corepack prepare yarn@1.22.22 --activate
-yarn install
+npm install
 cp .env.example .env.local
-yarn dev
+npm run dev
 ```
 
 Mở `http://localhost:3000`.
@@ -162,11 +159,11 @@ Mở `http://localhost:3000`.
 ## Kiểm tra chất lượng
 
 ```bash
-yarn typecheck
-yarn lint
-yarn test
-yarn format:check
-yarn build
+npm run typecheck
+npm run lint
+npm test
+npm run format:check
+npm run build
 ```
 
 ## Quy tắc bảo mật
@@ -188,3 +185,14 @@ yarn build
 - Báo cáo: V1.5.0.
 - Backup/Restore: V1.6.0.
 - PWA production: V1.7.0.
+
+
+## Hotfix V1.1.1 — Netlify ESM
+
+Phiên bản này xử lý lỗi production `ERR_REQUIRE_ESM` giữa `firebase-admin@14`, `jwks-rsa@4` và `jose@6` trên môi trường serverless CommonJS:
+
+- Khóa dependency con `jwks-rsa > jose` về `4.15.9` bằng npm `overrides`.
+- Build production bằng Webpack (`next build --webpack`) thay cho Turbopack.
+- Tách kiểm tra biến Firebase Admin khỏi module `firebase-admin`, để `/api/health` luôn trả JSON kể cả khi SDK Admin không tải được.
+
+Sau khi push bản này lên GitHub, trên Netlify chọn **Clear cache and deploy site** để dependency override được cài lại sạch.

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isFirebaseAdminConfigured } from "@/lib/firebase/admin";
+import { isFirebaseAdminConfigured } from "@/lib/firebase/admin-config";
 import { isFirebaseClientConfigured } from "@/lib/firebase/config";
 
 export const runtime = "nodejs";
@@ -11,7 +11,7 @@ export function GET() {
     {
       status: "ok",
       app: "TienDiDau",
-      version: "1.1.3",
+      version: "1.1.1",
       phase: "auth-bootstrap",
       firebaseClientConfigured: isFirebaseClientConfigured,
       firebaseAdminConfigured: isFirebaseAdminConfigured,

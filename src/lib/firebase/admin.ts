@@ -3,15 +3,13 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 
-const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID ?? process.env.GCLOUD_PROJECT ?? "";
-const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL ?? "";
-const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n") ?? "";
+import { firebaseAdminConfig, isFirebaseAdminConfigured } from "@/lib/firebase/admin-config";
 
-export const isFirebaseAdminConfigured = Boolean(
-  projectId && ((clientEmail && privateKey) || process.env.GOOGLE_APPLICATION_CREDENTIALS)
-);
+export { isFirebaseAdminConfigured };
 
 function createAdminApp() {
+  const { projectId, clientEmail, privateKey } = firebaseAdminConfig;
+
   if (clientEmail && privateKey && projectId) {
     return initializeApp({
       credential: cert({ projectId, clientEmail, privateKey }),
