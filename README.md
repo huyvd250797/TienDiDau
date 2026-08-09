@@ -1,4 +1,4 @@
-# Tiền Đi Đâu — V1.1.1 AuthBootstrap Hotfix
+# Tiền Đi Đâu — V1.1.2 AuthBootstrap Hotfix
 
 Phiên bản V1.1.0 triển khai nền tảng tài khoản cho ứng dụng quản lý thu chi **Tiền Đi Đâu**.
 
@@ -137,7 +137,7 @@ Kết quả cần có:
 ```json
 {
   "status": "ok",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "phase": "auth-bootstrap",
   "firebaseClientConfigured": true,
   "firebaseAdminConfigured": true
@@ -196,3 +196,13 @@ Phiên bản này xử lý lỗi production `ERR_REQUIRE_ESM` giữa `firebase-a
 - Tách kiểm tra biến Firebase Admin khỏi module `firebase-admin`, để `/api/health` luôn trả JSON kể cả khi SDK Admin không tải được.
 
 Sau khi push bản này lên GitHub, trên Netlify chọn **Clear cache and deploy site** để dependency override được cài lại sạch.
+
+
+## Hotfix V1.1.2 — Dependency install
+
+Netlify từng timeout ở bước `Install dependencies` khi npm xử lý cây dependency quanh TypeScript 6.x. Bản này:
+
+- Pin `typescript` = `5.8.3`.
+- Thêm `NPM_FLAGS=--legacy-peer-deps --no-audit --no-fund` cho Netlify.
+- Giữ nguyên hotfix Firebase Admin ESM của V1.1.1.
+- Sau khi push cần dùng **Clear cache and deploy site**.

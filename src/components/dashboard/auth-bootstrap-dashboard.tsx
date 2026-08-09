@@ -152,7 +152,7 @@ export function AuthBootstrapDashboard() {
       <Card className="p-5 sm:p-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h3 className="section-title">Trạng thái V1.1.1 AuthBootstrap</h3>
+            <h3 className="section-title">Trạng thái V1.1.2 AuthBootstrap</h3>
             <p className="section-description">Các thành phần nền tảng tài khoản đã hoàn tất.</p>
           </div>
           <Link href="/settings" className="secondary-button w-full sm:w-auto">
