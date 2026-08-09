@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.2-dependency-fix — 2026-08-09
+
+- Pin TypeScript `5.8.3` để tránh Netlify dependency resolver timeout quanh TypeScript 6.x.
+- Thêm `NPM_FLAGS=--legacy-peer-deps --no-audit --no-fund` cho Netlify install.
+- Giữ hotfix `jose 4.15.9` và Webpack production build từ V1.1.1.
+- Nâng version hiển thị/API lên `1.1.2`.
+
 ## 1.1.1-netlify-esm-fix — 2026-08-06
 
 ### Fixed
