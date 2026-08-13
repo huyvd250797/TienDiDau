@@ -1,9 +1,0 @@
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    // V1.1.0 chưa upload hóa đơn. Storage được đóng hoàn toàn.
-    match /{allPaths=**} {
-      allow read, write: if false;
-    }
-  }
-}
