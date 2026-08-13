@@ -5,9 +5,7 @@ import { primaryNavigation, secondaryNavigation } from "@/lib/navigation";
 export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[280px] border-r border-border/70 bg-sidebar/95 px-5 py-6 backdrop-blur-xl lg:flex lg:flex-col">
-      <div className="px-2">
-        <Brand />
-      </div>
+      <div className="px-2"><Brand /></div>
 
       <nav aria-label="Điều hướng chính" className="mt-10 space-y-1.5">
         {primaryNavigation.map((item) => (
@@ -21,11 +19,10 @@ export function Sidebar() {
             <NavigationLink key={item.href} item={item} variant="sidebar" />
           ))}
         </nav>
-
         <div className="rounded-3xl border border-primary/20 bg-primary/10 p-4">
-          <p className="text-sm font-semibold text-foreground">V1.1.2 · AuthBootstrap</p>
+          <p className="text-sm font-semibold text-foreground">V1.1.3 · Direct Access</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Google Login, hồ sơ, workspace, phân quyền và danh mục mặc định đã sẵn sàng.
+            Mở app là dùng ngay. Không Google Login, không server bootstrap.
           </p>
         </div>
       </div>

@@ -1,23 +1,11 @@
-export type AuthStatus =
-  | "initializing"
-  | "unauthenticated"
-  | "authenticating"
-  | "bootstrapping"
-  | "authenticated"
-  | "error";
+export type AuthStatus = "initializing" | "bootstrapping" | "authenticated" | "error";
 
 export type AppAuthErrorCode =
   | "FIREBASE_CLIENT_NOT_CONFIGURED"
-  | "FIREBASE_ADMIN_NOT_CONFIGURED"
-  | "AUTH_POPUP_BLOCKED"
-  | "AUTH_POPUP_CLOSED"
-  | "AUTH_UNAUTHORIZED_DOMAIN"
-  | "AUTH_PROVIDER_DISABLED"
+  | "AUTH_ANONYMOUS_DISABLED"
   | "AUTH_NETWORK_ERROR"
-  | "AUTH_TOKEN_MISSING"
-  | "AUTH_TOKEN_INVALID"
-  | "AUTH_EMAIL_MISSING"
   | "BOOTSTRAP_FAILED"
+  | "PERMISSION_DENIED"
   | "UNKNOWN_ERROR";
 
 export interface AppAuthError {
@@ -29,9 +17,9 @@ export interface AppAuthError {
 export interface AuthUserProfile {
   id: string;
   displayName: string;
-  email: string;
+  email: string | null;
   avatarUrl: string | null;
-  provider: "google";
+  provider: "anonymous" | "google";
   personalWorkspaceId: string;
   locale: "vi-VN";
   timezone: string;
@@ -74,15 +62,3 @@ export interface AuthBootstrapData {
   categories: CategoryBootstrapSummary;
   nextStep: "create-wallet";
 }
-
-export interface AuthSuccessResponse {
-  success: true;
-  data: AuthBootstrapData;
-}
-
-export interface AuthErrorResponse {
-  success: false;
-  error: AppAuthError;
-}
-
-export type AuthBootstrapResponse = AuthSuccessResponse | AuthErrorResponse;

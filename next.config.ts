@@ -1,13 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "export",
   reactStrictMode: true,
   typedRoutes: true,
-  poweredByHeader: false,
-  serverExternalPackages: ["firebase-admin"],
-  experimental: {
-    optimizePackageImports: ["firebase"]
-  }
+  poweredByHeader: false
 };
 
 export default nextConfig;

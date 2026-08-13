@@ -1,99 +1,58 @@
-# Tiền Đi Đâu — V1.1.2 AuthBootstrap Hotfix
+# Tiền Đi Đâu — V1.1.3 Direct Access
 
-Phiên bản V1.1.0 triển khai nền tảng tài khoản cho ứng dụng quản lý thu chi **Tiền Đi Đâu**.
+Bản tối giản của Tiền Đi Đâu dành cho nhu cầu ghi chép thu chi hằng ngày.
 
-## Chức năng đã hoàn thành
+## Thay đổi chính
 
-- Đăng nhập Google bằng Firebase Authentication.
-- Ghi nhớ phiên đăng nhập bằng `browserLocalPersistence`.
-- Tự động khôi phục phiên khi mở lại ứng dụng.
-- Màn hình Login, Splash, Loading và Error riêng.
-- Bảo vệ Dashboard, Ví, Giao dịch, Báo cáo và Cài đặt.
-- Firebase ID Token được gửi tới API backend và xác minh bằng Firebase Admin SDK.
-- API bootstrap idempotent: gọi nhiều lần không tạo trùng dữ liệu.
-- Tạo hồ sơ `users/{uid}` trong lần đăng nhập đầu tiên.
-- Tạo workspace cá nhân `workspaces/personal-{uid}`.
-- Tạo member owner và settings mặc định.
-- Tạo 20 danh mục mặc định: 7 Thu và 13 Chi.
-- Hiển thị avatar, họ tên, email, workspace và trạng thái phân quyền.
-- Đăng xuất có hộp thoại xác nhận.
-- Firestore Rules chỉ cho phép đọc dữ liệu thuộc workspace của thành viên đang hoạt động.
-- Storage Rules đóng hoàn toàn trong V1.1.0.
-- Cấu hình sẵn GitHub Actions và Netlify.
+- Bỏ màn hình Google Login.
+- Mở website là dùng trực tiếp.
+- Firebase Authentication Anonymous chạy ngầm để tạo UID riêng cho dữ liệu.
+- Bỏ Firebase Admin SDK, service-account và API bootstrap phía server.
+- Bỏ toàn bộ Netlify Functions của app ở phiên bản này.
+- Next.js build thành static export (`out/`) để deploy Netlify nhẹ và ổn định hơn.
+- Firestore vẫn lưu user, workspace, settings và 20 danh mục mặc định.
+- Giữ Dark / Light / System, responsive desktop/tablet/mobile.
+- Chuẩn bị sẵn dữ liệu nền cho V1.2.0 Wallets & Categories.
 
 ## Công nghệ
 
-- Node.js 24 LTS
-- Next.js App Router
-- React + TypeScript Strict Mode
-- Tailwind CSS 4
-- Firebase Authentication
-- Cloud Firestore
-- Firebase Admin SDK
-- Zod
-- Vitest
-- Netlify + GitHub continuous deployment
-- Dependency versions được ghim chính xác trong `package.json`
+- Node.js 24 LTS — môi trường build.
+- Next.js 16 App Router.
+- React 19 + TypeScript 5.8 Strict.
+- Tailwind CSS 4.
+- Firebase Web SDK.
+- Firebase Anonymous Authentication.
+- Cloud Firestore + offline cache.
+- Netlify static hosting.
 
-## Luồng đăng nhập
+## Luồng truy cập
 
 ```text
-Người dùng bấm Tiếp tục với Google
-→ Firebase Authentication trả về Firebase User
-→ Client lấy Firebase ID Token
-→ POST /api/auth/bootstrap
-→ Firebase Admin xác minh token
-→ Tạo/đồng bộ user, workspace, member, settings, categories
-→ Trả hồ sơ an toàn về client
+Mở website
+→ Firebase kiểm tra phiên cũ
+→ Chưa có phiên: tự signInAnonymously()
+→ Có UID: tạo/đọc user + workspace + settings + categories trực tiếp qua Firestore
 → Mở Dashboard
 ```
 
-## Cấu trúc dữ liệu
+Người dùng không thấy màn hình đăng nhập.
+
+## Firebase cần bật
+
+Trong Firebase Console:
 
 ```text
-users/{uid}
-
-workspaces/{workspaceId}
-├── members/{uid}
-├── settings/general
-└── categories/{categoryId}
+Authentication
+→ Sign-in method
+→ Anonymous
+→ Enable
 ```
 
-Workspace cá nhân sử dụng ID ổn định:
+Google provider có thể giữ nguyên nhưng V1.1.3 không sử dụng.
 
-```text
-personal-{firebaseUid}
-```
+## Biến Netlify cần giữ
 
-## Dữ liệu mặc định lần đầu
-
-### User
-
-- Avatar Google
-- Họ tên Google
-- Email Google
-- Locale `vi-VN`
-- Múi giờ `Asia/Ho_Chi_Minh`
-- Workspace cá nhân
-
-### Settings
-
-- Theme: `dark`
-- Currency: `VND`
-- Date format: `dd/MM/yyyy`
-- First day of week: Thứ Hai
-- Onboarding step: `create-wallet`
-
-### Categories
-
-- 7 danh mục Thu.
-- 13 danh mục Chi.
-- ID và `systemKey` ổn định.
-- Bootstrap không ghi đè danh mục đã tồn tại.
-
-## Biến môi trường bắt buộc
-
-### Firebase Web SDK
+Chỉ còn 6 biến Firebase Web:
 
 ```env
 NEXT_PUBLIC_FIREBASE_API_KEY=
@@ -104,105 +63,35 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 ```
 
-### Firebase Admin SDK
+Ba biến `FIREBASE_ADMIN_*` không còn được sử dụng và có thể xóa khỏi Netlify.
 
-```env
-FIREBASE_ADMIN_PROJECT_ID=
-FIREBASE_ADMIN_CLIENT_EMAIL=
-FIREBASE_ADMIN_PRIVATE_KEY=
-```
+## Firestore Rules
 
-Không thêm `NEXT_PUBLIC_` vào bất kỳ biến Firebase Admin nào.
+Bắt buộc publish file `firestore.rules` của V1.1.3. Rules cho phép UID hiện tại truy cập đúng workspace cá nhân `personal-{uid}` và tạo dữ liệu nền lần đầu.
 
 ## Deploy GitHub → Netlify
 
-Xem hướng dẫn từng bước tại:
+1. Ghi đè source bằng V1.1.3.
+2. Commit/push lên `main`.
+3. Netlify tự chạy `npm run build`.
+4. Output tĩnh được publish từ thư mục `out`.
 
-```text
-DEPLOY-NETLIFY.md
-```
+Không còn `/api/health` và `/api/auth/bootstrap` vì bản này không chạy server function.
 
-Sau khi cấu hình, mỗi lần push lên nhánh `main`, Netlify sẽ tự động build và deploy.
+## Lưu ý dữ liệu ẩn danh
 
-## Kiểm tra sau deploy
+Firebase giữ anonymous session bằng local persistence. Nếu người dùng xóa toàn bộ dữ liệu website/cookie hoặc dùng trình duyệt/thiết bị khác, Firebase có thể cấp UID mới. Vì vậy:
 
-Mở:
+- Không xóa Site Data trước khi Backup/Restore được hoàn thành.
+- V1.6.0 vẫn phải có Backup JSON/Restore.
+- Sau này có thể thêm tùy chọn liên kết Google để giữ cùng UID và dữ liệu khi chuyển thiết bị.
 
-```text
-https://your-site.netlify.app/api/health
-```
+## Phase tiếp theo
 
-Kết quả cần có:
+V1.2.0 Wallets & Categories:
 
-```json
-{
-  "status": "ok",
-  "version": "1.1.2",
-  "phase": "auth-bootstrap",
-  "firebaseClientConfigured": true,
-  "firebaseAdminConfigured": true
-}
-```
-
-Sau đó mở trang chính và đăng nhập Google.
-
-## Chạy local, chỉ khi cần
-
-```bash
-npm install
-cp .env.example .env.local
-npm run dev
-```
-
-Mở `http://localhost:3000`.
-
-## Kiểm tra chất lượng
-
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run format:check
-npm run build
-```
-
-## Quy tắc bảo mật
-
-- Không commit `.env.local`.
-- Không commit Service Account JSON.
-- Không commit Firebase Admin private key.
-- Client không được tự tạo user, workspace hoặc member.
-- Backend không tin `uid`, email hoặc tên gửi trực tiếp từ client.
-- UID chỉ lấy từ Firebase ID Token đã được Admin SDK xác minh.
-- Mọi collection đều có audit fields.
-- Storage vẫn đóng cho tới V1.3.0.
-
-## Phạm vi chưa thực hiện
-
-- CRUD Ví và Danh mục bằng giao diện: V1.2.0.
-- Thu, Chi, Chuyển tiền: V1.3.0.
-- Dashboard dữ liệu thật và lịch sử: V1.4.0.
-- Báo cáo: V1.5.0.
-- Backup/Restore: V1.6.0.
-- PWA production: V1.7.0.
-
-
-## Hotfix V1.1.1 — Netlify ESM
-
-Phiên bản này xử lý lỗi production `ERR_REQUIRE_ESM` giữa `firebase-admin@14`, `jwks-rsa@4` và `jose@6` trên môi trường serverless CommonJS:
-
-- Khóa dependency con `jwks-rsa > jose` về `4.15.9` bằng npm `overrides`.
-- Build production bằng Webpack (`next build --webpack`) thay cho Turbopack.
-- Tách kiểm tra biến Firebase Admin khỏi module `firebase-admin`, để `/api/health` luôn trả JSON kể cả khi SDK Admin không tải được.
-
-Sau khi push bản này lên GitHub, trên Netlify chọn **Clear cache and deploy site** để dependency override được cài lại sạch.
-
-
-## Hotfix V1.1.2 — Dependency install
-
-Netlify từng timeout ở bước `Install dependencies` khi npm xử lý cây dependency quanh TypeScript 6.x. Bản này:
-
-- Pin `typescript` = `5.8.3`.
-- Thêm `NPM_FLAGS=--legacy-peer-deps --no-audit --no-fund` cho Netlify.
-- Giữ nguyên hotfix Firebase Admin ESM của V1.1.1.
-- Sau khi push cần dùng **Clear cache and deploy site**.
+- Onboarding tạo ví đầu tiên.
+- CRUD ví.
+- CRUD danh mục.
+- Active/Hidden.
+- Dữ liệu nền để V1.3.0 nhập Thu/Chi/Chuyển tiền.

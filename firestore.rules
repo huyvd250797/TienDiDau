@@ -9,42 +9,93 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
-    function isActiveWorkspaceMember(workspaceId) {
-      return signedIn()
-        && exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid))
-        && get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.status == 'active'
-        && get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.isDeleted == false;
+    function isOwnWorkspace(workspaceId) {
+      return signedIn() && workspaceId == 'personal-' + request.auth.uid;
     }
 
     match /users/{userId} {
-      allow read: if isSelf(userId) && resource.data.isDeleted == false;
-      allow create, update, delete: if false;
+      allow read: if isSelf(userId);
+      allow create: if isSelf(userId)
+        && request.resource.data.id == userId
+        && request.resource.data.personalWorkspaceId == 'personal-' + userId
+        && request.resource.data.createdBy == userId
+        && request.resource.data.updatedBy == userId
+        && request.resource.data.isDeleted == false;
+      allow update: if isSelf(userId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.personalWorkspaceId == resource.data.personalWorkspaceId
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedBy == userId
+        && request.resource.data.isDeleted == false;
+      allow delete: if false;
     }
 
     match /workspaces/{workspaceId} {
-      allow read: if isActiveWorkspaceMember(workspaceId) && resource.data.isDeleted == false;
-      allow create, update, delete: if false;
+      allow read: if isOwnWorkspace(workspaceId);
+      allow create: if isOwnWorkspace(workspaceId)
+        && request.resource.data.id == workspaceId
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.type == 'personal'
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.isDeleted == false;
+      allow update: if isOwnWorkspace(workspaceId)
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.type == resource.data.type
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.isDeleted == false;
+      allow delete: if false;
 
       match /members/{memberId} {
-        allow read: if isActiveWorkspaceMember(workspaceId);
-        allow create, update, delete: if false;
+        allow read: if isOwnWorkspace(workspaceId) && memberId == request.auth.uid;
+        allow create: if isOwnWorkspace(workspaceId)
+          && memberId == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.role == 'owner'
+          && request.resource.data.status == 'active'
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.updatedBy == request.auth.uid
+          && request.resource.data.isDeleted == false;
+        allow update, delete: if false;
       }
 
       match /settings/{settingId} {
-        allow read: if isActiveWorkspaceMember(workspaceId) && resource.data.isDeleted == false;
-        allow create, update, delete: if false;
+        allow read: if isOwnWorkspace(workspaceId);
+        allow create: if isOwnWorkspace(workspaceId)
+          && settingId == 'general'
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.updatedBy == request.auth.uid
+          && request.resource.data.isDeleted == false;
+        allow update: if isOwnWorkspace(workspaceId)
+          && request.resource.data.createdBy == resource.data.createdBy
+          && request.resource.data.updatedBy == request.auth.uid
+          && request.resource.data.isDeleted == false;
+        allow delete: if false;
       }
 
       match /categories/{categoryId} {
-        allow read: if isActiveWorkspaceMember(workspaceId) && resource.data.isDeleted == false;
-        allow create, update, delete: if false;
+        allow read: if isOwnWorkspace(workspaceId);
+        allow create: if isOwnWorkspace(workspaceId)
+          && request.resource.data.id == categoryId
+          && request.resource.data.workspaceId == workspaceId
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.updatedBy == request.auth.uid
+          && request.resource.data.isDeleted == false;
+        allow update: if isOwnWorkspace(workspaceId)
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.workspaceId == resource.data.workspaceId
+          && request.resource.data.createdBy == resource.data.createdBy
+          && request.resource.data.updatedBy == request.auth.uid;
+        allow delete: if false;
       }
 
-      // Sẽ mở có kiểm soát trong V1.2.0 và V1.3.0.
+      // Mở CRUD có kiểm soát ở V1.2.0.
       match /wallets/{walletId} {
         allow read, create, update, delete: if false;
       }
 
+      // Mở ở V1.3.0.
       match /transactions/{transactionId} {
         allow read, create, update, delete: if false;
       }
