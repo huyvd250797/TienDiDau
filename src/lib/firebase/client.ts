@@ -8,7 +8,6 @@ import {
   persistentMultipleTabManager,
   type Firestore
 } from "firebase/firestore";
-import { connectStorageEmulator, getStorage, type FirebaseStorage } from "firebase/storage";
 
 import {
   firebasePublicConfig,
@@ -20,7 +19,6 @@ interface FirebaseClientServices {
   app: FirebaseApp;
   auth: Auth;
   db: Firestore;
-  storage: FirebaseStorage;
 }
 
 let services: FirebaseClientServices | null = null;
@@ -29,13 +27,11 @@ let emulatorsConnected = false;
 export function getFirebaseClient(): FirebaseClientServices {
   if (!isFirebaseClientConfigured) {
     throw new Error(
-      "Firebase client chưa được cấu hình. Hãy sao chép .env.example thành .env.local và điền các biến NEXT_PUBLIC_FIREBASE_*"
+      "Firebase client chưa được cấu hình. Hãy điền các biến NEXT_PUBLIC_FIREBASE_* trong Netlify."
     );
   }
 
-  if (services) {
-    return services;
-  }
+  if (services) return services;
 
   const app = getApps().length > 0 ? getApp() : initializeApp(firebasePublicConfig);
   const auth = getAuth(app);
@@ -51,15 +47,12 @@ export function getFirebaseClient(): FirebaseClientServices {
     db = getFirestore(app);
   }
 
-  const storage = getStorage(app);
-
   if (useFirebaseEmulator && !emulatorsConnected && typeof window !== "undefined") {
     connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
     connectFirestoreEmulator(db, "127.0.0.1", 8080);
-    connectStorageEmulator(storage, "127.0.0.1", 9199);
     emulatorsConnected = true;
   }
 
-  services = { app, auth, db, storage };
+  services = { app, auth, db };
   return services;
 }

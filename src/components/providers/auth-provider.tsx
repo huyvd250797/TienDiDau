@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  GoogleAuthProvider,
   browserLocalPersistence,
   onAuthStateChanged,
   setPersistence,
-  signInWithPopup,
-  signOut,
+  signInAnonymously,
   type User
 } from "firebase/auth";
 import {
@@ -21,84 +19,51 @@ import {
 } from "react";
 
 import { normalizeAuthError } from "@/features/auth/auth-errors";
-import {
-  bootstrapAuthenticatedUser,
-  getBootstrapAuthError
-} from "@/features/auth/bootstrap-client";
+import { bootstrapLightweightUser } from "@/features/auth/bootstrap-lite";
 import { getFirebaseClient } from "@/lib/firebase/client";
 import { isFirebaseClientConfigured } from "@/lib/firebase/config";
-import type {
-  AppAuthError,
-  AuthBootstrapData,
-  AuthStatus
-} from "@/types/auth";
+import type { AppAuthError, AuthBootstrapData, AuthStatus } from "@/types/auth";
 
 interface AuthContextValue {
   status: AuthStatus;
   firebaseUser: User | null;
   bootstrap: AuthBootstrapData | null;
   error: AppAuthError | null;
-  signInWithGoogle: () => Promise<void>;
-  signOutUser: () => Promise<void>;
-  retryBootstrap: () => Promise<void>;
-  clearError: () => void;
+  retryAccess: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({
-  prompt: "select_account"
-});
 
 export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [status, setStatus] = useState<AuthStatus>("initializing");
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [bootstrap, setBootstrap] = useState<AuthBootstrapData | null>(null);
   const [error, setError] = useState<AppAuthError | null>(null);
-  const activeBootstrap = useRef<{ uid: string; promise: Promise<void> } | null>(null);
-  const bootstrapSequence = useRef(0);
   const mounted = useRef(true);
+  const bootstrappingUid = useRef<string | null>(null);
 
-  const runBootstrap = useCallback(async (user: User, forceRefresh = false) => {
-    const active = activeBootstrap.current;
-    if (active && active.uid === user.uid && !forceRefresh) {
-      return active.promise;
-    }
-
-    const sequence = ++bootstrapSequence.current;
-    const task = (async () => {
-      setStatus("bootstrapping");
-      setError(null);
-
-      try {
-        const data = await bootstrapAuthenticatedUser(user, forceRefresh);
-        if (!mounted.current || sequence !== bootstrapSequence.current) return;
-        setFirebaseUser(user);
-        setBootstrap(data);
-        setStatus("authenticated");
-      } catch (unknownError) {
-        if (!mounted.current || sequence !== bootstrapSequence.current) return;
-        const bootstrapError = getBootstrapAuthError(unknownError);
-        setError(bootstrapError ?? normalizeAuthError(unknownError));
-        setStatus("error");
-      }
-    })();
-
-    activeBootstrap.current = { uid: user.uid, promise: task };
+  const runBootstrap = useCallback(async (user: User) => {
+    if (bootstrappingUid.current === user.uid) return;
+    bootstrappingUid.current = user.uid;
+    setStatus("bootstrapping");
+    setError(null);
 
     try {
-      await task;
+      const data = await bootstrapLightweightUser(user);
+      if (!mounted.current) return;
+      setFirebaseUser(user);
+      setBootstrap(data);
+      setStatus("authenticated");
+    } catch (unknownError) {
+      if (!mounted.current) return;
+      setError(normalizeAuthError(unknownError));
+      setStatus("error");
     } finally {
-      if (activeBootstrap.current?.promise === task) {
-        activeBootstrap.current = null;
-      }
+      bootstrappingUid.current = null;
     }
   }, []);
 
-  useEffect(() => {
-    mounted.current = true;
-
+  const startAccess = useCallback(async () => {
     if (!isFirebaseClientConfigured) {
       setError({
         code: "FIREBASE_CLIENT_NOT_CONFIGURED",
@@ -106,10 +71,31 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
         detail: "Hãy thêm các biến NEXT_PUBLIC_FIREBASE_* trong Netlify rồi deploy lại."
       });
       setStatus("error");
+      return;
+    }
+
+    try {
+      const { auth } = getFirebaseClient();
+      await setPersistence(auth, browserLocalPersistence);
+      if (auth.currentUser) {
+        await runBootstrap(auth.currentUser);
+        return;
+      }
+      setStatus("initializing");
+      await signInAnonymously(auth);
+    } catch (unknownError) {
+      if (!mounted.current) return;
+      setError(normalizeAuthError(unknownError));
+      setStatus("error");
+    }
+  }, [runBootstrap]);
+
+  useEffect(() => {
+    mounted.current = true;
+    if (!isFirebaseClientConfigured) {
+      void startAccess();
       return () => {
         mounted.current = false;
-        bootstrapSequence.current += 1;
-        activeBootstrap.current = null;
       };
     }
 
@@ -121,28 +107,24 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
         const { auth } = getFirebaseClient();
         await setPersistence(auth, browserLocalPersistence);
 
-        const stopListening = onAuthStateChanged(auth, (user) => {
+        const stopListening = onAuthStateChanged(auth, (user: User | null) => {
           if (!mounted.current || disposed) return;
-
-          if (!user) {
-            bootstrapSequence.current += 1;
-            activeBootstrap.current = null;
-            setFirebaseUser(null);
-            setBootstrap(null);
-            setError(null);
-            setStatus("unauthenticated");
+          if (user) {
+            setFirebaseUser(user);
+            void runBootstrap(user);
             return;
           }
-
-          setFirebaseUser(user);
-          void runBootstrap(user);
+          void signInAnonymously(auth).catch((unknownError: unknown) => {
+            if (!mounted.current || disposed) return;
+            setError(normalizeAuthError(unknownError));
+            setStatus("error");
+          });
         });
 
         if (disposed) {
           stopListening();
           return;
         }
-
         unsubscribe = stopListening;
       } catch (unknownError) {
         if (!mounted.current || disposed) return;
@@ -154,86 +136,20 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     return () => {
       disposed = true;
       mounted.current = false;
-      bootstrapSequence.current += 1;
-      activeBootstrap.current = null;
+      bootstrappingUid.current = null;
       unsubscribe();
     };
-  }, [runBootstrap]);
+  }, [runBootstrap, startAccess]);
 
-  const signInWithGoogle = useCallback(async () => {
-    if (!isFirebaseClientConfigured) {
-      setError({
-        code: "FIREBASE_CLIENT_NOT_CONFIGURED",
-        message: "Firebase chưa được cấu hình cho website này."
-      });
-      setStatus("error");
-      return;
-    }
-
-    setStatus("authenticating");
+  const retryAccess = useCallback(async () => {
     setError(null);
-
-    try {
-      const { auth } = getFirebaseClient();
-      const credential = await signInWithPopup(auth, provider);
-      setFirebaseUser(credential.user);
-      await runBootstrap(credential.user);
-    } catch (unknownError) {
-      const authError = normalizeAuthError(unknownError);
-      setError(authError);
-      setStatus(authError.code === "FIREBASE_CLIENT_NOT_CONFIGURED" ? "error" : "unauthenticated");
-    }
-  }, [runBootstrap]);
-
-  const signOutUser = useCallback(async () => {
-    try {
-      if (isFirebaseClientConfigured) {
-        const { auth } = getFirebaseClient();
-        await signOut(auth);
-      }
-    } finally {
-      bootstrapSequence.current += 1;
-      activeBootstrap.current = null;
-      setFirebaseUser(null);
-      setBootstrap(null);
-      setError(null);
-      setStatus("unauthenticated");
-    }
-  }, []);
-
-  const retryBootstrap = useCallback(async () => {
-    if (!firebaseUser) {
-      setError(null);
-      setStatus("unauthenticated");
-      return;
-    }
-
-    await runBootstrap(firebaseUser, true);
-  }, [firebaseUser, runBootstrap]);
-
-  const clearError = useCallback(() => setError(null), []);
+    setBootstrap(null);
+    await startAccess();
+  }, [startAccess]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({
-      status,
-      firebaseUser,
-      bootstrap,
-      error,
-      signInWithGoogle,
-      signOutUser,
-      retryBootstrap,
-      clearError
-    }),
-    [
-      status,
-      firebaseUser,
-      bootstrap,
-      error,
-      signInWithGoogle,
-      signOutUser,
-      retryBootstrap,
-      clearError
-    ]
+    () => ({ status, firebaseUser, bootstrap, error, retryAccess }),
+    [status, firebaseUser, bootstrap, error, retryAccess]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -241,10 +157,6 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth phải được dùng bên trong AuthProvider");
-  }
-
+  if (!context) throw new Error("useAuth phải được dùng bên trong AuthProvider");
   return context;
 }

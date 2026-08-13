@@ -4,39 +4,30 @@ import type { AppAuthError } from "@/types/auth";
 
 const UNKNOWN_ERROR: AppAuthError = {
   code: "UNKNOWN_ERROR",
-  message: "Đã xảy ra lỗi không xác định. Vui lòng thử lại."
+  message: "Không thể mở dữ liệu. Vui lòng thử lại."
 };
 
 export function normalizeAuthError(error: unknown): AppAuthError {
   if (error instanceof FirebaseError) {
     switch (error.code) {
-      case "auth/popup-blocked":
-        return {
-          code: "AUTH_POPUP_BLOCKED",
-          message: "Trình duyệt đang chặn cửa sổ đăng nhập Google.",
-          detail: "Hãy cho phép popup cho website này rồi thử lại."
-        };
-      case "auth/popup-closed-by-user":
-      case "auth/cancelled-popup-request":
-        return {
-          code: "AUTH_POPUP_CLOSED",
-          message: "Bạn đã đóng cửa sổ đăng nhập trước khi hoàn tất."
-        };
-      case "auth/unauthorized-domain":
-        return {
-          code: "AUTH_UNAUTHORIZED_DOMAIN",
-          message: "Tên miền hiện tại chưa được cho phép đăng nhập Google.",
-          detail: "Hãy thêm domain Netlify vào Firebase Authentication → Authorized domains."
-        };
       case "auth/operation-not-allowed":
         return {
-          code: "AUTH_PROVIDER_DISABLED",
-          message: "Google Sign-In chưa được bật trong Firebase Authentication."
+          code: "AUTH_ANONYMOUS_DISABLED",
+          message: "Firebase Anonymous chưa được bật.",
+          detail: "Vào Firebase Authentication → Sign-in method → Anonymous → Enable."
         };
       case "auth/network-request-failed":
+      case "unavailable":
         return {
           code: "AUTH_NETWORK_ERROR",
-          message: "Không thể kết nối tới Firebase. Hãy kiểm tra mạng rồi thử lại."
+          message: "Không thể đồng bộ Firebase lúc này.",
+          detail: "Kiểm tra kết nối mạng rồi thử lại."
+        };
+      case "permission-denied":
+        return {
+          code: "PERMISSION_DENIED",
+          message: "Firestore Rules chưa cho phép truy cập dữ liệu.",
+          detail: "Publish file firestore.rules của phiên bản hiện tại rồi thử lại."
         };
       case "auth/invalid-api-key":
       case "auth/app-not-authorized":
@@ -47,7 +38,7 @@ export function normalizeAuthError(error: unknown): AppAuthError {
       default:
         return {
           code: "UNKNOWN_ERROR",
-          message: "Không thể hoàn tất đăng nhập Google.",
+          message: "Không thể khởi tạo phiên sử dụng.",
           detail: error.code
         };
     }
