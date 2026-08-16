@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // TienDiDau V1 chỉ truy cập Firestore từ Next.js server bằng Admin SDK.
+    // Client bị chặn hoàn toàn.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
