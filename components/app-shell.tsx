@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CategoriesView } from "@/components/categories/categories-view";
 import { ChartIcon, HomeIcon, MoonIcon, PlusIcon, ReceiptIcon, SettingsIcon, SunIcon, WalletIcon } from "@/components/icons";
+import { TransactionQuickMenu, TransactionsView } from "@/components/transactions/transactions-view";
 import { Toast } from "@/components/ui/modal";
 import { OnboardingWallet, WalletsView } from "@/components/wallets/wallets-view";
 import {
@@ -13,10 +14,12 @@ import {
   loadWallets,
   type DataMode,
 } from "@/features/data/repository";
+import { loadTransactions } from "@/features/transactions/repository";
 import { isFirebaseConfigured } from "@/lib/firebase/client";
 import { startCloudSession } from "@/lib/firebase/session";
 import type { Category } from "@/types/category";
 import type { WorkspaceSettings } from "@/types/settings";
+import type { Transaction, TransactionType } from "@/types/transaction";
 import type { Wallet } from "@/types/wallet";
 
 type View = "dashboard" | "wallets" | "categories" | "transactions" | "reports" | "settings";
@@ -55,9 +58,12 @@ export function AppShell() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [settings, setSettings] = useState<WorkspaceSettings>(() => defaultSettings());
   const [dataLoading, setDataLoading] = useState(true);
   const [toast, setToast] = useState<ToastState>(null);
+  const [quickMenuOpen, setQuickMenuOpen] = useState(false);
+  const [quickTransactionType, setQuickTransactionType] = useState<TransactionType | null>(null);
 
   const dataMode: DataMode = syncState === "cloud" ? "cloud" : "local";
 
@@ -86,25 +92,31 @@ export function AppShell() {
     return () => { active = false; };
   }, []);
 
+  const notify = useCallback((message: string, tone: "success" | "danger" | "warning" = "success") => {
+    setToast({ message, tone });
+  }, []);
+
   const refreshData = useCallback(async () => {
     if (!workspaceId || syncState === "connecting") return;
     setDataLoading(true);
     try {
-      const [nextWallets, nextCategories, nextSettings] = await Promise.all([
+      const [nextWallets, nextCategories, nextSettings, nextTransactions] = await Promise.all([
         loadWallets(dataMode, workspaceId),
         loadCategories(dataMode, workspaceId),
         loadSettings(dataMode, workspaceId),
+        loadTransactions(dataMode, workspaceId),
       ]);
       setWallets(nextWallets);
       setCategories(nextCategories);
       setSettings(nextSettings);
+      setTransactions(nextTransactions);
     } catch (error) {
       console.warn("Unable to load workspace data.", error);
       notify("Không thể tải dữ liệu. Hãy thử lại hoặc kiểm tra kết nối.", "danger");
     } finally {
       setDataLoading(false);
     }
-  }, [dataMode, syncState, workspaceId]);
+  }, [dataMode, notify, syncState, workspaceId]);
 
   useEffect(() => {
     void refreshData();
@@ -124,15 +136,17 @@ export function AppShell() {
   const activeWallets = wallets.filter((item) => item.status === "active" && !item.isDeleted);
   const hasWallet = activeWallets.length > 0;
 
-  function notify(message: string, tone: "success" | "danger" | "warning" = "success") {
-    setToast({ message, tone });
-  }
-
   function toggleTheme() {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
     document.documentElement.dataset.theme = next;
     window.localStorage.setItem("tiendidau-theme", next);
+  }
+
+  function openQuickTransaction(type: TransactionType) {
+    setQuickMenuOpen(false);
+    setQuickTransactionType(type);
+    setView("transactions");
   }
 
   return (
@@ -148,7 +162,7 @@ export function AppShell() {
           ))}
         </nav>
         <div className="side-note">
-          V1.1.0 • Wallets & Categories<br />
+          V1.2.0 • Transactions Core<br />
           {syncState === "cloud" ? "Firebase đang đồng bộ." : syncState === "connecting" ? "Đang kết nối Firebase…" : "Local Mode đang hoạt động."}
         </div>
       </aside>
@@ -174,22 +188,48 @@ export function AppShell() {
           {view === "dashboard" && !dataLoading && !hasWallet && workspaceId && syncState !== "connecting" ? (
             <OnboardingWallet workspaceId={workspaceId} mode={dataMode} settings={settings} onNotify={notify} onSaved={async () => { await refreshData(); setView("dashboard"); }} />
           ) : view === "dashboard" ? (
-            <Dashboard wallets={wallets} syncState={syncState} loading={dataLoading} onGoWallets={() => setView("wallets")} onGoCategories={() => setView("categories")} />
+            <Dashboard
+              wallets={wallets}
+              transactions={transactions}
+              syncState={syncState}
+              loading={dataLoading}
+              onGoWallets={() => setView("wallets")}
+              onGoCategories={() => setView("categories")}
+              onGoTransactions={() => setView("transactions")}
+            />
           ) : view === "wallets" ? (
             <WalletsView wallets={wallets} settings={settings} workspaceId={workspaceId} mode={dataMode} loading={dataLoading} onRefresh={refreshData} onOpenCategories={() => setView("categories")} onNotify={notify} />
           ) : view === "categories" ? (
             <CategoriesView categories={categories} workspaceId={workspaceId} mode={dataMode} loading={dataLoading} onRefresh={refreshData} onBack={() => setView("wallets")} onNotify={notify} />
           ) : view === "transactions" ? (
-            <EmptySection title="Giao dịch" description={hasWallet ? "Ví và danh mục đã sẵn sàng. Thu, Chi và Chuyển tiền sẽ được triển khai ở V1.2.0." : "Hãy tạo ví trước khi nhập giao dịch."} icon="🧾" action={!hasWallet ? { label: "Tạo ví", onClick: () => setView("wallets") } : undefined} />
+            <TransactionsView
+              transactions={transactions}
+              wallets={wallets}
+              categories={categories}
+              settings={settings}
+              workspaceId={workspaceId}
+              mode={dataMode}
+              loading={dataLoading}
+              requestedType={quickTransactionType}
+              onRequestHandled={() => setQuickTransactionType(null)}
+              onRefresh={refreshData}
+              onGoWallets={() => setView("wallets")}
+              onGoCategories={() => setView("categories")}
+              onNotify={notify}
+            />
           ) : view === "reports" ? (
-            <EmptySection title="Báo cáo" description="Báo cáo sẽ sử dụng dữ liệu giao dịch thật từ các phiên bản tiếp theo." icon="📊" />
+            <EmptySection title="Báo cáo" description="Transactions Core đã có dữ liệu thật. Biểu đồ, Top danh mục và so sánh tháng sẽ được hoàn thiện ở V1.4.0." icon="📊" />
           ) : (
-            <Settings workspaceId={workspaceId} syncState={syncState} settings={settings} wallets={wallets} categories={categories} onOpenCategories={() => setView("categories")} />
+            <Settings workspaceId={workspaceId} syncState={syncState} settings={settings} wallets={wallets} categories={categories} transactions={transactions} onOpenCategories={() => setView("categories")} />
           )}
         </main>
       </div>
 
-      <button className="fab" aria-label={hasWallet ? "Thêm giao dịch" : "Thêm ví"} onClick={() => setView(hasWallet ? "transactions" : "wallets")}>
+      <button
+        className="fab"
+        aria-label={hasWallet ? "Thêm giao dịch" : "Thêm ví"}
+        onClick={() => hasWallet ? setQuickMenuOpen(true) : setView("wallets")}
+      >
         <PlusIcon />
       </button>
 
@@ -202,6 +242,7 @@ export function AppShell() {
         ))}
       </nav>
 
+      {quickMenuOpen && <TransactionQuickMenu onClose={() => setQuickMenuOpen(false)} onSelect={openQuickTransaction} />}
       {toast && <Toast message={toast.message} tone={toast.tone} />}
     </div>
   );
@@ -219,37 +260,45 @@ function Brand({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function Dashboard({ wallets, syncState, loading, onGoWallets, onGoCategories }: {
+function Dashboard({ wallets, transactions, syncState, loading, onGoWallets, onGoCategories, onGoTransactions }: {
   wallets: Wallet[];
+  transactions: Transaction[];
   syncState: SyncState;
   loading: boolean;
   onGoWallets: () => void;
   onGoCategories: () => void;
+  onGoTransactions: () => void;
 }) {
   const activeWallets = wallets.filter((item) => item.status === "active");
   const total = activeWallets.reduce((sum, item) => sum + item.currentBalance, 0);
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const monthTransactions = transactions.filter((item) => item.dateKey.startsWith(monthKey));
+  const income = monthTransactions.filter((item) => item.type === "income").reduce((sum, item) => sum + item.amount, 0);
+  const expense = monthTransactions.filter((item) => item.type === "expense").reduce((sum, item) => sum + item.amount, 0);
+
   return (
     <div className="stack">
       <section className="hero">
         <div>
           <p className="hero-label">Tháng này</p>
           <h2>Tổng quan tài chính</h2>
-          <p className="hero-text">{activeWallets.length ? `${activeWallets.length} ví đang sử dụng.` : "Bắt đầu bằng việc tạo ví đầu tiên."}</p>
+          <p className="hero-text">{activeWallets.length ? `${activeWallets.length} ví • ${monthTransactions.length} giao dịch trong tháng.` : "Bắt đầu bằng việc tạo ví đầu tiên."}</p>
         </div>
-        <div className="version-pill">V1.1.0</div>
+        <div className="version-pill">V1.2.0</div>
       </section>
 
       <section className="metrics">
         <Metric title="Tổng tài sản" value={total} accent="info" />
-        <Metric title="Thu nhập" value={0} accent="success" />
-        <Metric title="Chi tiêu" value={0} accent="danger" />
-        <Metric title="Còn lại" value={0} accent="primary" />
+        <Metric title="Thu nhập" value={income} accent="success" />
+        <Metric title="Chi tiêu" value={expense} accent="danger" />
+        <Metric title="Còn lại" value={income - expense} accent="primary" />
       </section>
 
       <section className="dashboard-grid">
         <article className="card">
           <div className="card-head">
-            <div><p className="card-title">Ví đang sử dụng</p><p className="card-sub">Số dư nền để chuẩn bị nhập giao dịch</p></div>
+            <div><p className="card-title">Ví đang sử dụng</p><p className="card-sub">Số dư đã phản ánh Thu, Chi và Chuyển tiền</p></div>
             <SyncPill state={syncState} />
           </div>
           {loading ? <p className="card-sub top-gap">Đang tải…</p> : activeWallets.length === 0 ? (
@@ -259,7 +308,7 @@ function Dashboard({ wallets, syncState, loading, onGoWallets, onGoCategories }:
               {activeWallets.slice(0, 4).map((wallet) => (
                 <div key={wallet.id} className="dashboard-wallet-row">
                   <span className="dashboard-wallet-icon" style={{ background: `${wallet.color}22` }}>{wallet.icon}</span>
-                  <div><b>{wallet.name}</b><small>{wallet.isDefault ? "Ví mặc định" : "Đang sử dụng"}</small></div>
+                  <div><b>{wallet.name}</b><small>{wallet.isDefault ? "Ví mặc định" : `${wallet.transactionCount} giao dịch`}</small></div>
                   <strong>{money(wallet.currentBalance)}</strong>
                 </div>
               ))}
@@ -269,18 +318,30 @@ function Dashboard({ wallets, syncState, loading, onGoWallets, onGoCategories }:
         </article>
 
         <article className="card">
-          <p className="card-title">Sẵn sàng cho giao dịch</p>
+          <p className="card-title">Transactions Core</p>
           <div className="quick-list">
             <QuickStep number="1" title="Ví" description={activeWallets.length ? `${activeWallets.length} ví đã sẵn sàng` : "Tạo ví đầu tiên"} onClick={onGoWallets} />
-            <QuickStep number="2" title="Danh mục" description="Thu/Chi mặc định + tùy chỉnh" onClick={onGoCategories} />
-            <QuickStep number="3" title="Giao dịch" description="Sẽ mở ở V1.2.0" />
+            <QuickStep number="2" title="Danh mục" description="Có thể dùng Emoji tùy chỉnh" onClick={onGoCategories} />
+            <QuickStep number="3" title="Giao dịch" description={`${transactions.length} giao dịch • sửa/xóa an toàn`} onClick={onGoTransactions} />
           </div>
         </article>
       </section>
 
       <section className="card">
-        <div className="card-head"><div><p className="card-title">Giao dịch gần đây</p><p className="card-sub">Chưa có giao dịch nào</p></div><ReceiptIcon /></div>
-        <div className="empty-box"><strong>Nền dữ liệu đã sẵn sàng</strong><p>V1.1.0 tập trung hoàn thiện ví, danh mục và onboarding. Thu/Chi sẽ được thêm đúng roadmap ở V1.2.0.</p></div>
+        <div className="card-head"><div><p className="card-title">Giao dịch gần đây</p><p className="card-sub">Tối đa 5 khoản mới nhất • lịch sử nâng cao ở V1.3.0</p></div><ReceiptIcon /></div>
+        {transactions.length === 0 ? (
+          <div className="empty-box"><strong>Chưa có giao dịch</strong><p>Nhấn nút + để ghi Thu, Chi hoặc Chuyển tiền.</p></div>
+        ) : (
+          <div className="mini-transaction-list">
+            {transactions.slice(0, 5).map((item) => (
+              <button key={item.id} type="button" className="mini-transaction-row" onClick={onGoTransactions}>
+                <span>{item.type === "transfer" ? "↔️" : item.categoryIcon || "⭕"}</span>
+                <div><b>{item.type === "transfer" ? "Chuyển tiền" : item.categoryName || "Giao dịch"}</b><small>{item.dateKey}</small></div>
+                <strong className={item.type}>{item.type === "income" ? "+" : item.type === "expense" ? "−" : ""}{money(item.amount)}</strong>
+              </button>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
@@ -305,12 +366,13 @@ function EmptySection({ title, description, icon, action }: { title: string; des
   return <section className="empty-page"><div><div className="empty-icon">{icon}</div><h2>{title}</h2><p>{description}</p>{action && <button className="btn primary top-gap" type="button" onClick={action.onClick}>{action.label}</button>}</div></section>;
 }
 
-function Settings({ workspaceId, syncState, settings, wallets, categories, onOpenCategories }: {
+function Settings({ workspaceId, syncState, settings, wallets, categories, transactions, onOpenCategories }: {
   workspaceId: string;
   syncState: SyncState;
   settings: WorkspaceSettings;
   wallets: Wallet[];
   categories: Category[];
+  transactions: Transaction[];
   onOpenCategories: () => void;
 }) {
   const defaultWallet = wallets.find((item) => item.id === settings.defaultWalletId);
@@ -325,13 +387,14 @@ function Settings({ workspaceId, syncState, settings, wallets, categories, onOpe
           <SettingRow label="Dữ liệu" value={syncState === "cloud" ? "Firebase" : syncState === "connecting" ? "Đang kết nối" : "Local"} />
           <SettingRow label="Ví mặc định" value={defaultWallet?.name ?? "Chưa có"} />
           <SettingRow label="Danh mục" value={`${categories.filter((item) => item.status === "active").length} đang dùng`} />
+          <SettingRow label="Giao dịch" value={`${transactions.length} khoản`} />
           <SettingRow label="Workspace" value={workspaceId ? "Đã sẵn sàng" : "Đang tạo"} />
         </div>
       </section>
       <section className="card">
-        <div className="card-head"><div><p className="card-title">Danh mục Thu & Chi</p><p className="card-sub">Thêm, sửa hoặc ẩn danh mục trước khi nhập giao dịch.</p></div><button className="btn secondary" type="button" onClick={onOpenCategories}>Quản lý</button></div>
+        <div className="card-head"><div><p className="card-title">Danh mục Thu & Chi</p><p className="card-sub">Icon mặc định hoặc Emoji tùy chỉnh từ bàn phím điện thoại.</p></div><button className="btn secondary" type="button" onClick={onOpenCategories}>Quản lý</button></div>
       </section>
-      <section className="card notice">Nếu mạng mất khi đang nhập form ví/danh mục, bản nháp vẫn được giữ trên thiết bị. Firebase là nguồn đồng bộ chính khi kết nối sẵn sàng.</section>
+      <section className="card notice">Khi sửa hoặc xóa giao dịch, Balance Engine hoàn tác tác động cũ rồi áp dụng dữ liệu mới. Chuyển tiền không tính vào Thu/Chi và không làm đổi tổng tài sản.</section>
     </div>
   );
 }

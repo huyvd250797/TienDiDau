@@ -3,19 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Modal } from "@/components/ui/modal";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
 import { saveCategory, setCategoryVisibility, type DataMode } from "@/features/data/repository";
+import { categoryIconGlyph } from "@/data/default-categories";
 import type { Category, CategoryInput, CategoryType } from "@/types/category";
 
 const icons = ["🍜", "☕", "🛍️", "⚡", "💧", "🌐", "🏠", "⛽", "❤️", "📚", "✈️", "🎮", "💼", "🎁", "💵", "🔗", "🏪", "📈", "⭕"];
 const colors = ["#22c55e", "#10b981", "#0ea5e9", "#3b82f6", "#8b5cf6", "#a855f7", "#ec4899", "#f43f5e", "#ef4444", "#f97316", "#f59e0b", "#64748b"];
 
 function iconFor(category: Category) {
-  const map: Record<string, string> = {
-    wallet: "💵", gift: "🎁", briefcase: "💼", link: "🔗", store: "🏪", percent: "📈", circle: "⭕",
-    utensils: "🍜", coffee: "☕", bag: "🛍️", zap: "⚡", droplet: "💧", wifi: "🌐", home: "🏠",
-    fuel: "⛽", heart: "❤️", book: "📚", plane: "✈️", gamepad: "🎮",
-  };
-  return map[category.icon] ?? category.icon;
+  return categoryIconGlyph(category.icon);
 }
 
 export function CategoriesView({
@@ -164,7 +161,7 @@ function CategoryForm({
     window.localStorage.setItem(draftKey, JSON.stringify({ name, type, icon, color }));
   }, [category, color, draftKey, icon, name, type]);
 
-  const canSave = name.trim().length >= 1 && name.trim().length <= 40;
+  const canSave = name.trim().length >= 1 && name.trim().length <= 40 && icon.trim().length >= 1 && icon.length <= 16;
 
   async function submit() {
     if (!canSave || saving) return;
@@ -185,7 +182,7 @@ function CategoryForm({
       <div className="form-grid">
         <label className="field full"><span>Tên danh mục</span><input autoFocus value={name} maxLength={40} onChange={(e) => setName(e.target.value)} placeholder="Ví dụ: Ăn sáng" /></label>
         <label className="field full"><span>Loại</span><select disabled={typeLocked} value={type} onChange={(e) => setType(e.target.value as CategoryType)}><option value="expense">Chi tiêu</option><option value="income">Thu nhập</option></select>{typeLocked && <small>Loại danh mục bị khóa vì đã có giao dịch.</small>}</label>
-        <div className="field full"><span>Icon</span><div className="choice-row">{icons.map((item) => <button key={item} type="button" className={`choice-icon ${icon === item ? "selected" : ""}`} onClick={() => setIcon(item)}>{item}</button>)}</div></div>
+        <EmojiPicker value={icon} presets={icons} onChange={setIcon} label="Icon / Emoji" />
         <div className="field full"><span>Màu sắc</span><div className="choice-row">{colors.map((item) => <button key={item} type="button" className={`color-dot ${color === item ? "selected" : ""}`} style={{ background: item }} aria-label={item} onClick={() => setColor(item)} />)}</div></div>
       </div>
       <div className="modal-actions">

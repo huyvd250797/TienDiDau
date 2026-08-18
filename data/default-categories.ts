@@ -31,3 +31,13 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
   { id: "expense-entertainment", name: "Giải trí", type: "expense", icon: "gamepad", color: "#a855f7", sortOrder: 220 },
   { id: "expense-other", name: "Khác", type: "expense", icon: "circle", color: "#64748b", sortOrder: 230 }
 ];
+
+export const CATEGORY_ICON_GLYPHS: Record<string, string> = {
+  wallet: "💵", gift: "🎁", briefcase: "💼", link: "🔗", store: "🏪", percent: "📈", circle: "⭕",
+  utensils: "🍜", coffee: "☕", bag: "🛍️", zap: "⚡", droplet: "💧", wifi: "🌐", home: "🏠",
+  fuel: "⛽", heart: "❤️", book: "📚", plane: "✈️", gamepad: "🎮",
+};
+
+export function categoryIconGlyph(icon: string) {
+  return CATEGORY_ICON_GLYPHS[icon] ?? icon;
+}

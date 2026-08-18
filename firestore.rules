@@ -19,6 +19,12 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 50
         && request.resource.data.type in ['cash', 'bank', 'e_wallet', 'credit_card', 'other']
+        && request.resource.data.icon is string
+        && request.resource.data.icon.size() > 0
+        && request.resource.data.icon.size() <= 32
+        && request.resource.data.color is string
+        && request.resource.data.startDate is string
+        && request.resource.data.startDate.size() == 10
         && request.resource.data.initialBalance is int
         && request.resource.data.currentBalance is int
         && request.resource.data.transactionCount is int
@@ -34,11 +40,47 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 40
         && request.resource.data.type in ['income', 'expense']
+        && request.resource.data.icon is string
+        && request.resource.data.icon.size() > 0
+        && request.resource.data.icon.size() <= 32
+        && request.resource.data.color is string
         && request.resource.data.status in ['active', 'hidden']
         && request.resource.data.isDefault is bool
         && request.resource.data.transactionCount is int
         && request.resource.data.transactionCount >= 0
         && request.resource.data.isDeleted is bool;
+    }
+
+    function validTransaction(workspaceId) {
+      return request.resource.data.workspaceId == workspaceId
+        && request.resource.data.type in ['income', 'expense', 'transfer']
+        && request.resource.data.amount is int
+        && request.resource.data.amount > 0
+        && request.resource.data.dateKey is string
+        && request.resource.data.dateKey.size() == 10
+        && request.resource.data.timezone is string
+        && request.resource.data.timezone.size() > 0
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 300
+        && request.resource.data.isDeleted is bool
+        && (
+          (
+            request.resource.data.type in ['income', 'expense']
+            && request.resource.data.walletId is string
+            && request.resource.data.categoryId is string
+            && request.resource.data.sourceWalletId == null
+            && request.resource.data.destinationWalletId == null
+          )
+          ||
+          (
+            request.resource.data.type == 'transfer'
+            && request.resource.data.walletId == null
+            && request.resource.data.categoryId == null
+            && request.resource.data.sourceWalletId is string
+            && request.resource.data.destinationWalletId is string
+            && request.resource.data.sourceWalletId != request.resource.data.destinationWalletId
+          )
+        );
     }
 
     match /users/{uid} {
@@ -60,6 +102,12 @@ service cloud.firestore {
     match /workspaces/{workspaceId}/categories/{categoryId} {
       allow read: if ownsWorkspace(workspaceId);
       allow create, update: if ownsWorkspace(workspaceId) && validCategory(workspaceId);
+      allow delete: if false;
+    }
+
+    match /workspaces/{workspaceId}/transactions/{transactionId} {
+      allow read: if ownsWorkspace(workspaceId);
+      allow create, update: if ownsWorkspace(workspaceId) && validTransaction(workspaceId);
       allow delete: if false;
     }
 

@@ -1,60 +1,59 @@
-# Deploy V1.1.0 lên GitHub → Netlify
+# Deploy TienDiDau V1.2.0 — GitHub → Netlify
 
-## 1. Cập nhật GitHub
-
-Dùng source trong ZIP `TienDiDau-V1.1.0-WalletsCategories.zip` để thay source production hiện tại.
-
-Root repository phải có trực tiếp:
+## 1. Thay source
+Dùng toàn bộ nội dung trong:
 
 ```text
-app/
-components/
-data/
-features/
-lib/
-types/
-package.json
-netlify.toml
-next.config.mjs
-firestore.rules
+TienDiDau-V1.2.0-TransactionsCore.zip
 ```
 
-Không đưa `node_modules`, `.next`, `out`, `.env.local` lên GitHub.
+thay source V1.1.0 hiện tại. `package.json` phải nằm ở root repository.
 
-## 2. Netlify
+## 2. Push GitHub
 
-`netlify.toml` đã cấu hình:
+```bash
+git add -A
+git commit -m "Release TienDiDau V1.2.0 Transactions Core"
+git push origin main
+```
+
+Netlify sẽ tự build.
+
+## 3. Nếu Netlify dùng cache cũ
 
 ```text
-Build command: npm run build
-Publish directory: out
-Node: 24
+Deploys
+→ Trigger deploy
+→ Clear cache and deploy site
 ```
 
-Giữ 6 biến `NEXT_PUBLIC_FIREBASE_*` đã có từ baseline.
+Build chuẩn:
 
-Sau khi push `main`, Netlify sẽ tự build. Nếu Netlify dùng cache source/dependency cũ, chọn **Clear cache and deploy site**.
+```text
+npm run build
+publish: out
+```
 
-## 3. Firebase Authentication
+## 4. Publish Firestore Rules — BẮT BUỘC
+Sau khi source deploy:
 
-Authentication → Sign-in method → Anonymous → Enable.
+```text
+Firebase Console
+→ Firestore Database
+→ Rules
+→ copy toàn bộ firestore.rules của V1.2.0
+→ Publish
+```
 
-## 4. Firestore Rules
-
-Mở file `firestore.rules` của V1.1.0:
-
-Firebase Console → Firestore Database → Rules → thay toàn bộ rules → Publish.
-
-V1.1.0 cần rules mới để cho phép wallet/category của đúng Anonymous UID.
+Nếu không publish rules mới, thao tác lưu transaction sẽ bị `permission-denied`.
 
 ## 5. Smoke test production
-
-- Mở site không cần login.
-- Workspace mới hiện onboarding Tạo ví đầu tiên.
-- Tạo ví → Dashboard hiện đúng số dư.
-- Tạo ví thứ hai → đổi ví mặc định.
-- Ẩn ví mặc định → bắt chọn ví thay thế.
-- Mở Danh mục → có 7 Thu + 13 Chi mặc định.
-- Tạo/sửa/ẩn danh mục tùy chỉnh.
-- Reload trang → dữ liệu không mất.
-- Test mobile và desktop.
+1. Mở app.
+2. Kiểm tra ví/danh mục V1.1.0 vẫn còn.
+3. Tạo Thu +100.000 → ví tăng đúng 100.000.
+4. Tạo Chi 30.000 → ví giảm đúng 30.000.
+5. Tạo ví thứ hai; chuyển 20.000 → tổng tài sản không đổi.
+6. Sửa Chi 30.000 → 50.000 → ví chỉ giảm thêm 20.000.
+7. Xóa giao dịch Chi → số dư hoàn tác đúng.
+8. Tạo danh mục mới → nhập Emoji tùy chỉnh từ bàn phím điện thoại → lưu và dùng được trong giao dịch.
+9. Reload site → dữ liệu vẫn đúng.
