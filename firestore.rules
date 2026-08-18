@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownsUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function ownsWorkspace(workspaceId) {
+      return signedIn() && workspaceId == 'personal-' + request.auth.uid;
+    }
+
+    function validWallet(workspaceId) {
+      return request.resource.data.workspaceId == workspaceId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 50
+        && request.resource.data.type in ['cash', 'bank', 'e_wallet', 'credit_card', 'other']
+        && request.resource.data.initialBalance is int
+        && request.resource.data.currentBalance is int
+        && request.resource.data.transactionCount is int
+        && request.resource.data.transactionCount >= 0
+        && request.resource.data.status in ['active', 'hidden']
+        && request.resource.data.isDefault is bool
+        && request.resource.data.isDeleted is bool;
+    }
+
+    function validCategory(workspaceId) {
+      return request.resource.data.workspaceId == workspaceId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 40
+        && request.resource.data.type in ['income', 'expense']
+        && request.resource.data.status in ['active', 'hidden']
+        && request.resource.data.isDefault is bool
+        && request.resource.data.transactionCount is int
+        && request.resource.data.transactionCount >= 0
+        && request.resource.data.isDeleted is bool;
+    }
+
+    match /users/{uid} {
+      allow read, create, update: if ownsUser(uid);
+      allow delete: if false;
+    }
+
+    match /workspaces/{workspaceId} {
+      allow read, create, update: if ownsWorkspace(workspaceId);
+      allow delete: if false;
+    }
+
+    match /workspaces/{workspaceId}/wallets/{walletId} {
+      allow read: if ownsWorkspace(workspaceId);
+      allow create, update: if ownsWorkspace(workspaceId) && validWallet(workspaceId);
+      allow delete: if false;
+    }
+
+    match /workspaces/{workspaceId}/categories/{categoryId} {
+      allow read: if ownsWorkspace(workspaceId);
+      allow create, update: if ownsWorkspace(workspaceId) && validCategory(workspaceId);
+      allow delete: if false;
+    }
+
+    match /workspaces/{workspaceId}/settings/{settingId} {
+      allow read, create, update: if ownsWorkspace(workspaceId);
+      allow delete: if false;
+    }
+
+    match /workspaces/{workspaceId}/{document=**} {
+      allow read: if ownsWorkspace(workspaceId);
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

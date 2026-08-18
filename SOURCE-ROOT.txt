@@ -1,0 +1,4 @@
+TIENDIDAU SOURCE ROOT — V1.1.0 Wallets & Categories
+
+Đây là source root chính thức tiếp nối baseline V1.0.3 CleanDeploy.
+Không trộn lại source AuthBootstrap/Google Login/Firebase Admin cũ.
