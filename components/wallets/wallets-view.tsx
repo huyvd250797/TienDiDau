@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Modal } from "@/components/ui/modal";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
 import {
   saveWallet,
   setDefaultWallet,
@@ -201,7 +202,8 @@ export function WalletForm({
   onNotify: (message: string, tone?: "success" | "danger" | "warning") => void;
 }) {
   const draftKey = `tiendidau:wallet-draft:${wallet?.id ?? "new"}`;
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const [name, setName] = useState(wallet?.name ?? "");
   const [type, setType] = useState<WalletType>(wallet?.type ?? "cash");
   const [icon, setIcon] = useState(wallet?.icon ?? "💵");
@@ -235,7 +237,7 @@ export function WalletForm({
   }, [balanceText, color, draftKey, icon, makeDefault, name, startDate, type, wallet]);
 
   const initialBalance = Number(balanceText.replace(/[^0-9-]/g, ""));
-  const canSave = name.trim().length >= 1 && name.trim().length <= 50 && Number.isSafeInteger(initialBalance) && startDate.length === 10;
+  const canSave = name.trim().length >= 1 && name.trim().length <= 50 && icon.trim().length >= 1 && icon.length <= 16 && Number.isSafeInteger(initialBalance) && startDate.length === 10;
   const balanceLocked = Boolean(wallet && wallet.transactionCount > 0);
 
   async function submit() {
@@ -271,7 +273,7 @@ export function WalletForm({
         <label className="field"><span>Loại ví</span><select value={type} onChange={(e) => setType(e.target.value as WalletType)}>{walletTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
         <label className="field"><span>Ngày bắt đầu</span><input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>
         <label className="field full"><span>Số dư ban đầu</span><div className="money-input"><input inputMode="numeric" disabled={balanceLocked} value={balanceText} onChange={(e) => setBalanceText(e.target.value)} /><b>₫</b></div>{balanceLocked && <small>Số dư ban đầu bị khóa vì ví đã có giao dịch.</small>}</label>
-        <div className="field full"><span>Icon</span><div className="choice-row">{icons.map((item) => <button key={item} type="button" className={`choice-icon ${icon === item ? "selected" : ""}`} onClick={() => setIcon(item)}>{item}</button>)}</div></div>
+        <EmojiPicker value={icon} presets={icons} onChange={setIcon} label="Icon / Emoji" />
         <div className="field full"><span>Màu sắc</span><div className="choice-row">{colors.map((item) => <button key={item} type="button" className={`color-dot ${color === item ? "selected" : ""}`} style={{ background: item }} aria-label={item} onClick={() => setColor(item)} />)}</div></div>
         <label className="check-row full"><input type="checkbox" checked={makeDefault} onChange={(e) => setMakeDefault(e.target.checked)} /><span>Dùng làm ví mặc định</span></label>
       </div>
@@ -323,7 +325,7 @@ export function OnboardingWallet({ workspaceId, mode, settings, onSaved, onNotif
         <div className="onboarding-visual">👛</div>
         <span className="mini-badge">Bước đầu tiên</span>
         <h2>Tạo ví đầu tiên</h2>
-        <p>Ví là nơi lưu số dư và là nền tảng để nhập Thu, Chi ở phiên bản tiếp theo.</p>
+        <p>Ví là nơi lưu số dư và là nền tảng để nhập Thu, Chi và Chuyển tiền ngay trong V1.2.0.</p>
         <div className="onboarding-points">
           <span>✓ Không cần đăng nhập</span>
           <span>✓ Có thể tạo nhiều ví</span>

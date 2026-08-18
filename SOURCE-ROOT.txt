@@ -1,4 +1,7 @@
-TIENDIDAU SOURCE ROOT — V1.1.0 Wallets & Categories
+TIENDIDAU SOURCE ROOT — V1.2.0 Transactions Core
 
-Đây là source root chính thức tiếp nối baseline V1.0.3 CleanDeploy.
-Không trộn lại source AuthBootstrap/Google Login/Firebase Admin cũ.
+Baseline: V1.1.0 Wallets & Categories.
+Kiến trúc: Next.js + React + TypeScript + Firebase Web SDK + Anonymous Auth + Firestore.
+Không Firebase Admin, không Google Login bắt buộc, không API bootstrap, không server function.
+
+Release target: TienDiDau-V1.2.0-TransactionsCore.zip

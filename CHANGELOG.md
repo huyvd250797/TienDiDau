@@ -1,28 +1,31 @@
 # Changelog
 
-## V1.1.0 — Wallets & Categories
+## V1.2.0 — Transactions Core
 
-- Xây onboarding tạo ví đầu tiên.
-- Thêm danh sách ví, tổng số dư ví active.
-- Thêm form tạo/sửa ví: tên, loại, icon, màu, số dư đầu, ngày bắt đầu, ví mặc định.
-- Thêm ẩn/hiện ví và luồng chuyển ví mặc định an toàn.
-- Thêm `transactionCount` để chuẩn bị khóa field sau khi có giao dịch.
-- Thêm màn hình Danh mục với tab Thu/Chi.
-- Thêm tạo/sửa/ẩn/hiện danh mục mặc định và tùy chỉnh.
-- Giữ 20 danh mục mặc định theo ID cố định, không tạo trùng.
-- Thêm `defaultWalletId` và `onboardingCompleted` vào settings.
-- Dashboard đọc số dư ví thật.
-- Settings có shortcut quản lý danh mục và hiển thị ví mặc định.
-- Thêm local fallback cho ví/danh mục/settings.
-- Thêm lưu draft form localStorage khi thao tác chưa đồng bộ.
-- Cập nhật Firestore Rules riêng cho wallet/category.
-- Bổ sung `firestore.indexes.json` nền.
-- Giữ nguyên kiến trúc Lite: không login bắt buộc, không Firebase Admin, không server function.
+### Added
+- Thu nhập, Chi tiêu và Chuyển tiền.
+- Balance Engine hoàn tác/áp dụng tác động giao dịch.
+- Firestore transaction để cập nhật giao dịch + số dư ví đồng thời.
+- Sửa giao dịch, kể cả đổi type/wallet/category.
+- Soft delete giao dịch và hoàn tác số dư.
+- `transactionCount` tự cập nhật cho wallet/category.
+- Cảnh báo vượt số dư nhưng vẫn cho phép xác nhận.
+- Draft giao dịch mới lưu localStorage.
+- FAB mở menu Thu / Chi / Chuyển.
+- Danh sách giao dịch Core với Sửa/Xóa.
+- Dashboard integration cơ bản: Thu/Chi/Còn lại tháng hiện tại + 5 giao dịch gần đây.
+- Custom Emoji picker cho Ví và Danh mục; dùng bàn phím emoji native trên iPhone/Android.
+- `types/transaction.ts` và transaction snapshot fields.
+- Firestore Rules cho transactions.
 
-## V1.0.3 — Clean Deploy
+### Changed
+- Version 1.1.0 → 1.2.0.
+- Dashboard/Ví phản ánh `currentBalance` sau giao dịch.
+- Onboarding copy cập nhật: có thể nhập giao dịch ngay trong V1.2.0.
+- Default category icon token cũ vẫn được resolve sang emoji để backward compatible.
 
-- Baseline source root sạch.
-- Next.js static export.
-- Anonymous Firebase Auth.
-- Firebase Web SDK + Firestore.
-- CSS native, responsive, Dark Mode mặc định.
+### Kept lightweight
+- Không Firebase Admin.
+- Không Google Login bắt buộc.
+- Không server API / Netlify Function.
+- Không thêm dependency mới.

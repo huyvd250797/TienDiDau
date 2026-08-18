@@ -1,98 +1,142 @@
-# Tiền Đi Đâu — V1.1.0 Wallets & Categories
+# Tiền Đi Đâu — V1.2.0 Transactions Core
 
-Phiên bản dữ liệu đầu tiên sau baseline V1.0.3 CleanDeploy.
+Baseline: **V1.1.0 Wallets & Categories**. Phiên bản này triển khai lõi giao dịch theo roadmap tổng thể, vẫn giữ kiến trúc Lite: **Next.js + React + TypeScript + Firebase Web SDK + Cloud Firestore**, truy cập trực tiếp bằng Firebase Anonymous Auth chạy ngầm.
 
-## Mục tiêu
+## Phạm vi V1.2.0
 
-V1.1.0 tạo nền để V1.2.0 có thể nhập giao dịch thật:
+### Thu nhập
+- Ngày giao dịch.
+- Số tiền nguyên VND.
+- Ví.
+- Danh mục Thu.
+- Ghi chú không bắt buộc.
+- Lưu giao dịch và cộng số dư ví trong cùng Balance Engine.
 
-- Onboarding tạo ví đầu tiên.
-- CRUD mềm cho Ví: thêm, sửa, ẩn/hiện, đổi ví mặc định.
-- CRUD mềm cho Danh mục Thu/Chi: thêm, sửa, ẩn/hiện.
-- 20 danh mục mặc định không bị tạo trùng.
-- Lưu `initialBalance` và `currentBalance` dạng Number nguyên VND.
-- `currentBalance = initialBalance` khi tạo ví.
-- Cấu trúc sẵn `transactionCount` để khóa các field nhạy cảm khi V1.2.0 có giao dịch.
-- Firebase Anonymous Auth chạy ngầm; không có màn hình đăng nhập.
-- Firestore là nguồn dữ liệu chính; Local Mode là fallback nếu Firebase không sẵn sàng.
-- Draft form được giữ trong localStorage nếu lưu thất bại/mất mạng.
+### Chi tiêu
+- Ngày giao dịch.
+- Số tiền.
+- Ví.
+- Danh mục Chi.
+- Ghi chú.
+- Nếu số tiền lớn hơn số dư: hiển thị cảnh báo và yêu cầu xác nhận, nhưng vẫn cho phép lưu.
+- Lưu giao dịch và trừ số dư ví.
 
-## Stack
+### Chuyển tiền
+- Ví nguồn và ví đích phải khác nhau.
+- Số tiền > 0.
+- Không có danh mục.
+- Trừ ví nguồn, cộng ví đích.
+- Không tính là Thu hoặc Chi.
+- Nếu nguồn không đủ số dư: cảnh báo nhưng vẫn cho phép xác nhận.
 
-- Next.js 16
-- React 19
-- TypeScript
-- CSS native
-- Firebase Web SDK
-- Firebase Anonymous Auth
-- Cloud Firestore
-- Static export → Netlify
+### Sửa / Xóa giao dịch
+- Có thể đổi loại, ngày, số tiền, ví, danh mục và ghi chú.
+- Khi sửa: hoàn tác tác động cũ rồi áp dụng tác động mới.
+- Khi đổi ví: hoàn tác ví cũ và cập nhật ví mới.
+- Xóa dùng `isDeleted = true`; không hard delete.
+- Xóa tự hoàn tác số dư và `transactionCount`.
 
-Không Firebase Admin, không API Route, không Netlify Function, không Tailwind, không thư viện state/chart.
-
-## Cấu trúc dữ liệu V1.1.0
+### Balance Engine
+File chính:
 
 ```text
-users/{uid}
-workspaces/{workspaceId}
-workspaces/{workspaceId}/settings/general
-workspaces/{workspaceId}/wallets/{walletId}
-workspaces/{workspaceId}/categories/{categoryId}
+features/transactions/balance-engine.ts
+features/transactions/repository.ts
 ```
 
-### Wallet
+Các thay đổi số dư ví, transaction count và document giao dịch được thực hiện trong cùng **Firestore transaction** ở Cloud Mode. Local Mode dùng cập nhật đồng bộ localStorage kèm best-effort rollback.
+
+Các case đã kiểm tra bằng pure balance engine:
+- Income create.
+- Expense create/edit.
+- Income → Expense.
+- Đổi wallet/category khi sửa.
+- Transfer create.
+- Transfer đổi nguồn/đích.
+- Delete transfer / hoàn tác.
+
+## Emoji tùy chỉnh
+
+Ngoài danh sách icon mặc định, form **Ví** và **Danh mục** có thêm ô:
+
+```text
+Icon / Emoji
+→ Chạm "Chạm để chọn Emoji 😀"
+→ mở bàn phím Emoji iPhone/Android
+→ chọn emoji bất kỳ
+```
+
+Emoji được lưu trực tiếp trong field `icon`, không cần thư viện icon/emoji mới. Các icon category mặc định dạng token cũ vẫn được hỗ trợ để dữ liệu V1.1.0 không bị hỏng.
+
+## Giao diện V1.2.0
+- Nút FAB `+` mở menu nhanh Thu / Chi / Chuyển.
+- Trang Giao dịch có nút thêm nhanh và tab cơ bản.
+- Danh sách giao dịch cho phép Sửa / Xóa ngay để test Transaction Core.
+- Dashboard hiển thị tổng Thu/Chi tháng hiện tại ở mức integration cơ bản.
+- Dashboard nâng cao, filter/search/pagination/chart vẫn thuộc V1.3.0 / V1.4.0 đúng roadmap.
+
+## Dữ liệu transaction
+
+```text
+workspaces/{workspaceId}/transactions/{transactionId}
+```
+
+Các field chính:
 
 ```text
 id
 workspaceId
-name
-type
-icon
-color
-initialBalance
-currentBalance
-startDate
-status: active | hidden
-isDefault
-transactionCount
-createdAt / updatedAt
-createdBy / updatedBy
+type: income | expense | transfer
+amount: Number nguyên
+dateKey: YYYY-MM-DD
+transactionAt: Firestore Timestamp
+timezone
+note
+walletId
+categoryId
+sourceWalletId
+destinationWalletId
+walletName / walletIcon / walletColor snapshot
+categoryName / categoryIcon / categoryColor snapshot
+sourceWalletName / sourceWalletIcon snapshot
+destinationWalletName / destinationWalletIcon snapshot
+createdAt / createdBy
+updatedAt / updatedBy
 isDeleted
 schemaVersion
 ```
 
-### Category
+Snapshot chỉ phục vụ lịch sử hiển thị. ID vẫn là nguồn tham chiếu chính.
+
+## Firestore Rules
+
+**Bắt buộc publish lại `firestore.rules` của V1.2.0** sau deploy. Rules mới cho phép đúng Anonymous UID thao tác:
+- wallets
+- categories
+- transactions
+- settings
+
+và validate transaction type/amount/date/wallet/category cơ bản.
+
+## Deploy
+
+Source tiếp tục dùng static export:
 
 ```text
-id
-workspaceId
-name
-type: income | expense
-icon
-color
-sortOrder
-isDefault
-status: active | hidden
-transactionCount
-createdAt / updatedAt
-createdBy / updatedBy
-isDeleted
-schemaVersion
+npm run build
+→ out/
+→ Netlify publish out
 ```
 
-## Nghiệp vụ chính
+Không có:
+- Google Login bắt buộc.
+- Firebase Admin.
+- Service account runtime.
+- Next.js API route.
+- Netlify Function.
+- Tailwind / shadcn / Zustand / Zod / chart library.
 
-- Workspace có tối đa một ví mặc định đang active.
-- Ví đầu tiên tự trở thành mặc định.
-- Không thể ẩn ví mặc định nếu chưa chọn ví active khác thay thế.
-- Không hard-delete ví/danh mục ở V1.1.0.
-- Nếu ví đã có `transactionCount > 0`, số dư ban đầu bị khóa trên form sửa.
-- Nếu danh mục đã có `transactionCount > 0`, loại Thu/Chi bị khóa.
-- Danh mục mặc định được seed idempotent theo ID cố định.
-
-## Firebase
-
-Giữ 6 biến Netlify:
+## Firebase environment variables
 
 ```env
 NEXT_PUBLIC_FIREBASE_API_KEY=
@@ -103,30 +147,13 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 ```
 
-Bật Authentication → Anonymous.
+Authentication → Anonymous phải được bật.
 
-Sau khi deploy source, copy `firestore.rules` vào Firebase Console → Firestore → Rules → Publish.
+## Giai đoạn chưa làm
 
-## Build
-
-```bash
-npm install
-npm run typecheck
-npm run build
-```
-
-Next.js xuất site tĩnh vào `out/`, Netlify đã được cấu hình trong `netlify.toml`.
-
-## Phạm vi chưa làm
-
-Đúng roadmap, V1.1.0 **không** triển khai:
-
-- Thu nhập
-- Chi tiêu
-- Chuyển tiền
-- Balance engine theo transaction
-- Lịch sử giao dịch
-- Báo cáo thật
-- Backup/Restore
-
-Các chức năng Thu/Chi/Chuyển tiền bắt đầu ở V1.2.0 Transactions Core.
+Đúng roadmap, V1.2.0 chưa mở rộng sang:
+- Lịch sử nâng cao + filter/search/pagination: V1.3.0.
+- Dashboard tháng hoàn chỉnh và biểu đồ: V1.3.0/V1.4.0.
+- Backup/Restore: V1.5.0.
+- PWA/offline queue hoàn chỉnh: V1.6.0.
+- Family/Google account linking: V2.2.0.

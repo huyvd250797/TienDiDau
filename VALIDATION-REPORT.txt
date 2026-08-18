@@ -1,0 +1,10 @@
+JSON configs: PASS
+Dependency budget: PASS (no Firebase Admin/Zod/Tailwind/Chart/State library)
+Internal alias imports: PASS (47)
+Default categories: PASS (7 income / 13 expense)
+Transactions Core files: PASS
+Firestore transaction rules: PASS
+Legacy AuthBootstrap/Admin code: PASS (absent)
+TS/TSX syntax: PASS (19 files)
+Balance Engine: PASS (income / expense edit / transfer / delete)
+Production npm build: NOT RUN (dependency download timed out in packaging environment)
